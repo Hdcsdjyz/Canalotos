@@ -1,6 +1,12 @@
+#	@file: Makefile
+#   @author: lhxl
+#   @data: 2025-4-4
+#	@version: build2
+
+RootDir = $(shell pwd)
 MAKE = make
 
-all: build image
+all: build
 
 build:
-	$(MAKE) boot
+	cd boot && $(MAKE)
