@@ -5,7 +5,7 @@
 
 OutputFile = ../../Canalotos/bin/boot/
 ImgFile = ../../Canalotos/img/
-bin = $(OutputFile)boot.bin $(OutputFile)loader.bin
+bin = $(OutputFile)boot.bin $(OutputFile)loader.bin $(OutputFile)kernel.bin
 
 ASM = nasm
 
@@ -25,6 +25,7 @@ image:
 	dd if=$(OutputFile)boot.bin of=$(ImgFile)boot.img bs=512 count=1 conv=notrunc
 	mount $(ImgFile)boot.img /mnt/floppy -o loop
 	sudo cp -fv $(OutputFile)loader.bin /mnt/floppy/
+	sudo cp -fv $(OutputFile)kernel.bin /mnt/floppy/
 	sync
 	umount /mnt/floppy
 

@@ -1,7 +1,7 @@
 ;   @file: boot.asm
 ;   @author: lhxl
 ;   @data: 2025-4-4
-;   @version: build2
+;   @version: build3
 
 	org     0x7c00
 BaseOfStack         equ	0x7c00
@@ -15,25 +15,7 @@ SectorBalance       equ 17
 ; FAT12 head
 	jmp     short Start
 	nop
-	BS_OEMName      db 'Canaloto'
-    BPB_BytesPerSec dw 512
-    BPB_SecPerClus  db 1
-    BPB_RsvdSecCnt  dw 1
-    BPB_NumFATs     db 2
-    BPB_RootEntCnt  dw 224
-    BPB_TotSec16    dw 2880
-    BPB_Media       db 0xF0
-    BPB_FATSz16     dw 9
-    BPB_SecPerTrk   dw 18
-    BPB_NumHeads    dw 2
-    BPB_HiddSec     dd 0
-    BPB_TotSec32    dd 0
-    BS_DrvNum       db 0
-    BS_Reserved1    db 0
-    BS_BootSig      db 0x29
-    BS_VolID        dd 0
-    BS_VolLab       db 'boot loader'
-    BS_FileSysType  db 'FAT12   '
+%include "FAT32.inc"
 
 Start:
 	mov	    ax,	cs
@@ -61,7 +43,7 @@ Start:
 	mov     ax, ds
 	mov     es, ax
 	pop     ax
-	mov     bp, BootMessage
+	mov     bp, MSG_Boot
 	int     0x10
 ; Reset floppy
 	xor     ah,	ah
@@ -117,7 +99,7 @@ SearchFile:
 	mov     ax, ds
 	mov     es, ax
 	pop     ax
-	mov     bp, NoLoaderMessage
+	mov     bp, MSG_NoLoader
 	int     0x10
 	jmp     $
 .FileFound:
@@ -134,7 +116,8 @@ SearchFile:
 	mov     ax, cx
 ; Get the FATs of loader.bin and call ReadSector to load it to memory until FAT=0xFFF
 .LoadFile:
-; = Print '.' before load a sector
+; =
+; Print '.' before load a sector
 	push    ax
 	push    bx
 	mov     ah, 0xE
@@ -228,9 +211,9 @@ rootDirSize     dw RootDirSectors
 sectorNo        dw 0
 odd             db 0
 
-BootMessage:        db "Booting..."
-LoaderFileName:     db "LOADER  BIN",0
-NoLoaderMessage:    db "Missing file loader.bin"
+MSG_Boot:        db "Booting..."
+LoaderFileName:  db "LOADER  BIN",0
+MSG_NoLoader:    db "Missing file loader.bin"
 
 	times   510 - ($ - $$)  db  0
 	dw      0xaa55
