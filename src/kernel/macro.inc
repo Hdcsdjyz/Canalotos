@@ -1,4 +1,4 @@
-;   @file: boot/macro.inc
+;   @file: kernel/macro.inc
 ;   @author: lhxl
 ;   @data: 2025-4-6
 ;   @version: build4

@@ -1,22 +1,14 @@
-;   @file: loader.asm
+;   @file: boot/loader.asm
 ;   @author: lhxl
-;   @data: 2025-4-4
-;   @version: build3
+;   @data: 2025-4-6
+;   @version: build4
 
 %include "macro.inc"
 
 	org     0x10000
 	jmp     Start
 
-%include "FAT32.inc"
-
-BaseOfStack         equ	0x7c00
-BaseOfLoader        equ 0x1000
-OffsetOfLoader      equ 0
-RootDirSectors      equ 14
-SectorNumOfRootDir  equ 19
-SectorNumOfFAT1     equ 1
-SectorBalance       equ 17
+%include "FAT12.inc"
 
 BaseOfKernel        equ 0
 OffsetOfKernel      equ 0x100000
@@ -24,38 +16,31 @@ TempBaseOfKernel    equ 0
 TempOffsetOfKernel  equ 0x7E00
 MemoryBuffer        equ 0x7E00
 
-[segment .gdt]
+[section .gdt]
 GDT:          Descriptor 0,          0,       0
 DESC_CODE32:  Descriptor 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_CR
 DESC_DATA32:  Descriptor 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_DRW
 
 GDTLength  equ	$ - GDT
-GDTPointor:  dw	GDTLength - 1
+GDTPointer:  dw	GDTLength - 1
 		dd	GDT
 
 SelectorCode32 equ DESC_CODE32 - GDT
 SelectorData32 equ DESC_DATA32 - GDT
 
-[segment .idt]
-IDT:
-	resb    1000
-IDT_END:
-IDTPointor:
-	dw      IDT_END - IDT - 1
-	dd      IDT
-
-[segment .gdt64]
+[section .gdt64]
 GDT64:          Descriptor64 0
 DESC_CODE64:    Descriptor64 DA_64 | DA_C
 DESC_DATA64:    Descriptor64 DA_DRW
 
 Gdt64Length  equ $ - GDT64
-GDT64Pointor:  dw Gdt64Length - 1
+GDT64Pointer:  dw Gdt64Length - 1
 			   dd GDT64
 
 SelectorCode64 equ DESC_CODE64 - GDT64
 SelectorData64 equ DESC_DATA64 - GDT64
 
+[section .text]
 [bits 16]
 Start:
 	mov     ax, cs
@@ -76,8 +61,13 @@ Start:
 	mov     bp, LoaderMessage
 	int     0x10
 ; Enter protect mode and expand fs register
-	db      0x66
-	lgdt    [GDTPointor]
+	push    ax
+	in      al, 0x92
+	or      al, 0b00000010
+	out     0x92, al
+	pop     ax
+	cli
+	lgdt    [GDTPointer]
 	mov     eax, cr0
 	or      eax, 1
 	mov     cr0, eax
@@ -86,6 +76,10 @@ Start:
 	mov     eax, cr0
 	and     al, 0b11111110
 	mov     cr0, eax
+	sti
+	xor     ah, ah
+	xor     dl, dl
+	int     0x13
 
 	mov     word [sectorNo], SectorNumOfRootDir
 SearchFile:
@@ -129,7 +123,7 @@ SearchFile:
 .FileNotFound:
 	mov     ax, 0x1301
 	mov     bx, 0x8C
-	mov     dx, 0x100
+	mov     dx, 0x300
 	mov     cx, 23
 	push    ax
 	mov     ax, ds
@@ -201,121 +195,29 @@ SearchFile:
 	mov     dx, RootDirSectors
 	add     ax, dx
 	add     ax, SectorBalance
-	add     bx, [BPB_BytesPerSec]
 	jmp     .LoadFile
 .FileLoaded:
+	mov     ax, 0xB800
+	mov     gs, ax
 .KillMotor:
 	push    dx
 	mov     dx, 0x3F2
 	mov     al, 0
 	out     dx, al
 	pop     dx
-	mov     ax, 0xB800
-	mov     gs, ax
-%ifdef CL_LOADER_DEBUG
-; Get memory information
-	mov     ebx, 0
-	mov     ax, 0
-	mov     es, ax
-	mov     di, MemoryBuffer
-.GetMemoryStruct:
-	mov     eax, 0x0E820
-	mov     ecx, 20
-	mov     edx, 0x534D4150
-	int     0x15
-	jc      .GetMemoryFail
-	add     di, 20
-	cmp     ebx, 0
-	jne     .GetMemoryStruct
-	jmp     .GetMemorySuccess
-.GetMemoryFail:
-	mov     ax, 0x1301
-	mov     bx, 0x8C
-	mov     dx, 0x500
-	mov     cx, 23
-	push    ax
-	mov     ax, ds
-	mov     es, ax
-	pop     ax
-	mov     bp, MSG_GetMemoryError
-	int     0x10
-	jmp     $
-.GetMemorySuccess:
-; Set SVGA
-	mov     ax, ds
-	mov     es, ax
-	mov     ax, 0
-	mov     es, ax
-	mov     di, 0x8000
-	mov     ax, 0x4F00
-	int     0x10
-	cmp     ax,	0x4F
-	jz      .KO
-	mov     ax, 0x1301
-	mov     bx, 0x8C
-	mov     dx, 0x900
-	mov     cx, 23
-	push    ax
-	mov     ax, ds
-	mov     es, ax
-	pop     ax
-	mov     bp, MSG_GetSVGAInfoError
-	int     0x10
-	jmp     $
-.KO:
-	mov     ax, ds
-	mov     es, ax
-	mov     ax, 0
-	mov     es, ax
-	mov     si, 0x800E
-	mov     esi, dword [es:si]
-	mov     edi, 0x8200
-.GetSVGAModeInfo:
-	mov     cx, word [es:esi]
-	push    ax
-	mov     ax, 0
-	mov     al, ch
-	call    DispAL
-	mov     ax, 0
-	mov     al, cl
-	call    DispAL
-	pop     ax
-	cmp     cx, 0xFFFF
-	jz      .GetSVGAModeInfoSuccess
-	mov     ax, 0x4F01
-	int     0x10
-	cmp     ax, 0x4F
-	jnz     .GetSVGAModeInfoFail
-	add     esi, 2
-	add     edi, 0x100
-	jmp     .GetSVGAModeInfo
-.GetSVGAModeInfoFail:
-	mov     ax, 0x1301
-	mov     bx, 0x8C
-	mov     dx, 0xD00
-	mov     cx, 24
-	push    ax
-	mov     ax, ds
-	mov     es, ax
-	pop     ax
-	mov     bp, MSG_GetSVGAModeInfoError
-	int     0x10
+	jmp     .GetSVGAModeInfoSuccess
 .SetSVGAModeFail:
 	jmp	$
-%endif
 .GetSVGAModeInfoSuccess:
 	mov     ax, 0x4F02
 	mov     bx, 0x4180
 	int 	0x10
-%ifdef
 	cmp     ax, 0x4F
 	jnz     .SetSVGAModeFail
-%endif
 
 .EnableProtectMode:
 	cli
-;	db      0x66
-	lgdt    [GDTPointor]
+	lgdt    [GDTPointer]
 	mov     eax, cr0
 	or      eax, 1
 	mov     cr0, eax
@@ -323,7 +225,7 @@ SearchFile:
 
 [bits 32]
 TempProtectMode:
-	mov     ax, 0x10
+	mov     ax, SelectorData32
 	mov     ds, ax
 	mov     es, ax
 	mov     fs, ax
@@ -348,9 +250,8 @@ TempProtectMode:
 	mov     dword [0x92028], 0xA00083
 
 ; GDT
-	db      0x66
-	lgdt    [GDT64Pointor]
-	mov     ax, 0x10
+	lgdt    [GDT64Pointer]
+	mov     ax, SelectorData64
     mov     ds, ax
     mov     es, ax
     mov     fs, ax
@@ -382,7 +283,7 @@ TempProtectMode:
 ; Enter Kernel
 	jmp     SelectorCode64:OffsetOfKernel
 
-[segment .lib]
+[section .lib16]
 [bits 16]
 ReadSector:
 	push    bp
@@ -445,39 +346,7 @@ GetFATEntry:
 	pop     es
 	ret
 
-%ifdef CL_LOADER_DEBUG
-; void DispAL(al=hexToDisplay)
-DispAL:
-	push    ecx
-	push    edx
-	push    edi
-	mov     edi, [displayPosition]
-	mov     ah, 0xF
-	mov     dl, al
-	shr     al, 4
-	mov     ecx, 2
-.begin:
-	and     al, 0xF
-	cmp     al, 9
-	ja      .1
-	add     al, '0'
-	jmp     .2
-.1:
-	sub     al, 0xA
-	add     al, 'A'
-.2:
-	mov     [gs:edi], ax
-	add     edi, 2
-	mov     al ,dl
-	loop    .begin
-	mov     [displayPosition], edi
-	pop     edi
-	pop     edx
-	pop     ecx
-	ret
-%endif
-
-[segment .lib64]
+[section .lib32]
 [bits 32]
 ; void QueryLongMode()
 QueryLongMode:
@@ -504,7 +373,9 @@ rootDirSize         dw RootDirSectors
 sectorNo            dw 0
 odd                 db 0
 offsetOfKernelCount dd OffsetOfKernel
-displayPosition     dd	0
+
+MemStructNumber     dd 0
+SVGAModeCounter     dd 0
 
 %ifdef CL_LOADER_DEBUG
 MSG_GetMemoryError:     db "Get Memory Struct ERROR"

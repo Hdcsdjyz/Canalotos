@@ -1,21 +1,17 @@
-;   @file: boot.asm
+;   @file: boot/boot.asm
 ;   @author: lhxl
 ;   @data: 2025-4-4
 ;   @version: build3
 
-	org     0x7c00
 BaseOfStack         equ	0x7c00
 BaseOfLoader        equ 0x1000
 OffsetOfLoader      equ 0
-RootDirSectors      equ 14      ; RootDirSectors = (BPB_RootEntCnt * 32 + BPB_BytesPerSec - 1) / BPB_BytesPerSec
-SectorNumOfRootDir  equ 19
-SectorNumOfFAT1     equ 1
-SectorBalance       equ 17
 
+	org     0x7c00
 ; FAT12 head
 	jmp     short Start
 	nop
-%include "FAT32.inc"
+%include "FAT12.inc"
 
 Start:
 	mov	    ax,	cs
@@ -215,5 +211,5 @@ MSG_Boot:        db "Booting..."
 LoaderFileName:  db "LOADER  BIN",0
 MSG_NoLoader:    db "Missing file loader.bin"
 
-	times   510 - ($ - $$)  db  0
+	resb   510 - ($ - $$)
 	dw      0xaa55

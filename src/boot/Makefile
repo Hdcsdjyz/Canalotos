@@ -1,11 +1,11 @@
 #	@file: boot/Makefile
 #   @author: lhxl
-#   @data: 2025-4-4
-#	@version: build2
+#   @data: 2025-4-6
+#	@version: build4
 
 OutputFile = ../../Canalotos/bin/boot/
 ImgFile = ../../Canalotos/img/
-bin = $(OutputFile)boot.bin $(OutputFile)loader.bin $(OutputFile)kernel.bin
+bin = $(OutputFile)boot.bin $(OutputFile)loader.bin
 
 ASM = nasm
 
@@ -17,6 +17,9 @@ mkdir:
 ifeq ($(wildcard $(OutputFile)),)
 	mkdir $(OutputFile)
 endif
+ifeq ($(wildcard $(ImgFile)),)
+	mkdir $(ImgFile)
+endif
 
 build: $(bin)
 
@@ -24,10 +27,8 @@ image:
 	dd if=/dev/zero of=$(ImgFile)boot.img bs=512 count=2880
 	dd if=$(OutputFile)boot.bin of=$(ImgFile)boot.img bs=512 count=1 conv=notrunc
 	mount $(ImgFile)boot.img /mnt/floppy -o loop
-	sudo cp -fv $(OutputFile)loader.bin /mnt/floppy/
-	sudo cp -fv $(OutputFile)kernel.bin /mnt/floppy/
+	cp -fv $(OutputFile)loader.bin /mnt/floppy/
 	sync
-	umount /mnt/floppy
 
 $(OutputFile)%.bin: %.asm
 	$(ASM) $< -o $@
