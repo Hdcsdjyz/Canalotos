@@ -1,13 +1,15 @@
-#	@file: boot/Makefile
-#   @author: lhxl
-#   @data: 2025-4-6
-#	@version: build4
+# @file: boot/Makefile
+# @author: lhxl
+# @data: 2025-4-12
+# @version: build5
 
 OutputFile = ../../Canalotos/bin/boot/
 ImgFile = ../../Canalotos/img/
 bin = $(OutputFile)boot.bin $(OutputFile)loader.bin
 
 ASM = nasm
+
+ASMFLAGS = -w-zeroing
 
 .PHONY: all
 
@@ -31,4 +33,4 @@ image:
 	sync
 
 $(OutputFile)%.bin: %.asm
-	$(ASM) $< -o $@
+	$(ASM) $< $(ASMFLAGS) -o $@

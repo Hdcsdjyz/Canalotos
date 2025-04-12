@@ -1,7 +1,7 @@
-;   @file: boot/macro.inc
-;   @author: lhxl
-;   @data: 2025-4-6
-;   @version: build4
+; @file: boot/macro.inc
+; @author: lhxl
+; @data: 2025-4-12
+; @version: build5
 
 ; segment attribute
 DA_64           equ 0x2000  ; 64-bit code segment
@@ -15,11 +15,11 @@ DA_DPL3         equ 0x60    ; DPL = 3
 
 DA_DR           equ 0x90    ; read-only data
 DA_DRW          equ 0x92    ; read&write data
-DA_DRWA         equ 0x93    ; read&write visited data
-DA_C            equ 0x98    ; execute-only code
-DA_CR           equ 0x9A    ; execute&read code
-DA_CCO          equ 0x9C    ; 只执行、一致、代码
-DA_CCOR         equ 0x9E    ; 可执行、可读、一致、代码
+DA_DRWA         equ 0x93    ; read&write accessed data
+DA_C            equ 0x98    ; executable-only code
+DA_CR           equ 0x9A    ; executable&read code
+DA_CCO          equ 0x9C    ; executable-only confirming code
+DA_CCOR         equ 0x9E    ; executable&read confirming code
 
 DA_LDT          equ 0x82    ;
 DA_TaskGate     equ 0x85    ; task gate

@@ -1,11 +1,11 @@
-;   @file: kernel/head.asm
-;   @author: lhxl
-;   @data: 2025-4-6
-;   @version: build4
+; @file: kernel/head.asm
+; @author: lhxl
+; @data: 2025-4-12
+; @version: build5
 
 %include "macro.inc"
 
-extern StartKernel
+extern __start_kernel
 
 [section .text]
 global _start
@@ -47,7 +47,7 @@ Entry64:
 	db      0x48
 	retf
 IStartKernel:
-	dq      StartKernel
+	dq      __start_kernel
 
 	align   8
 	times   0x1000 - ($ - $$) db 0

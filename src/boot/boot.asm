@@ -1,19 +1,18 @@
-;   @file: boot/boot.asm
-;   @author: lhxl
-;   @data: 2025-4-4
-;   @version: build3
+; @file: boot/boot.asm
+; @author: lhxl
+; @data: 2025-4-12
+; @version: build5
 
 BaseOfStack         equ	0x7c00
 BaseOfLoader        equ 0x1000
 OffsetOfLoader      equ 0
 
 	org     0x7c00
-; FAT12 head
-	jmp     short Start
+	jmp     short __Start
 	nop
 %include "FAT12.inc"
 
-Start:
+__Start:
 	mov	    ax,	cs
 	mov	    ds,	ax
 	mov	    es,	ax
@@ -48,7 +47,7 @@ Start:
 
 ; Search loader
 	mov     word [sectorNo], SectorNumOfRootDir
-SearchFile:
+__SearchFile:
 	cmp     word [rootDirSize], 0
 	jz      .FileNotFound
 	dec     word [rootDirSize]
@@ -57,7 +56,7 @@ SearchFile:
 	mov     bx, 0x8000
 	mov     ax, [sectorNo]
 	mov     cl, 1
-	call    ReadSector
+	call    __ReadSector
 	mov     si, LoaderFileName
 	mov     di, 0x8000
 	cld
@@ -85,7 +84,7 @@ SearchFile:
 	jmp     .SearchLoader
 .NextSector:
 	add     word [sectorNo], 1
-	jmp     SearchFile
+	jmp     __SearchFile
 .FileNotFound:
 	mov     ax, 0x1301
 	mov     bx, 0x8C
@@ -124,9 +123,9 @@ SearchFile:
 	pop     ax
 ; =
 	mov     cl, 1
-	call    ReadSector
+	call    __ReadSector
 	pop     ax
-	call    GetFATEntry
+	call    __GetFATEntry
 	cmp     ax, 0xFFF
 	jz      .FileLoaded
 	push    ax
@@ -139,8 +138,8 @@ SearchFile:
 	jmp     BaseOfLoader:OffsetOfLoader
 
 ; Read sector
-; void ReadSector(ax=sectorToRead, cl=numOfSectors, es:bx=buffer)
-ReadSector:
+; void __ReadSector(ax=sectorToRead, cl=numOfSectors, es:bx=buffer)
+__ReadSector:
 	push    bp
 	mov     bp, sp
 	sub     esp, 2
@@ -166,8 +165,8 @@ ReadSector:
 	ret
 
 ; Get FAt Entry
-; bool GetFATEntry(ah=numOfFAT) -> [odd]
-GetFATEntry:
+; bool __GetFATEntry(ah=numOfFAT) -> [odd]
+__GetFATEntry:
 	push    es
 	push    bx
 	push    ax
@@ -190,7 +189,7 @@ GetFATEntry:
 	mov     bx, 0x8000
 	add     ax, SectorNumOfFAT1
 	mov     cl, 2
-	call    ReadSector
+	call    __ReadSector
 	pop     dx
 	add     bx, dx
 	mov     ax, [es:bx]
@@ -208,8 +207,8 @@ sectorNo        dw 0
 odd             db 0
 
 MSG_Boot:        db "Booting..."
-LoaderFileName:  db "LOADER  BIN",0
+LoaderFileName:  db "LOADER  BIN", 0
 MSG_NoLoader:    db "Missing file loader.bin"
 
-	resb   510 - ($ - $$)
+	resb    510 - ($ - $$)
 	dw      0xaa55

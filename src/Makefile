@@ -1,9 +1,10 @@
-#	@file: Makefile
-#   @author: lhxl
-#   @data: 2025-4-6
-#	@version: build4
+# @file: Makefile
+# @author: lhxl
+# @data: 2025-4-12
+# @version: build5
 
 RootDir = $(shell pwd)
+
 MAKE = make
 
 all: mkdir build

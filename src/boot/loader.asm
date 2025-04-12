@@ -1,12 +1,12 @@
-;   @file: boot/loader.asm
-;   @author: lhxl
-;   @data: 2025-4-6
-;   @version: build4
+; @file: boot/loader.asm
+; @author: lhxl
+; @data: 2025-4-12
+; @version: build5
 
 %include "macro.inc"
 
 	org     0x10000
-	jmp     Start
+	jmp     __Start
 
 %include "FAT12.inc"
 
@@ -21,9 +21,9 @@ GDT:          Descriptor 0,          0,       0
 DESC_CODE32:  Descriptor 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_CR
 DESC_DATA32:  Descriptor 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_DRW
 
-GDTLength  equ	$ - GDT
-GDTPointer:  dw	GDTLength - 1
-		dd	GDT
+GDTLength equ $ - GDT
+GDTPointer:     dw GDTLength - 1
+				dd GDT
 
 SelectorCode32 equ DESC_CODE32 - GDT
 SelectorData32 equ DESC_DATA32 - GDT
@@ -33,16 +33,16 @@ GDT64:          Descriptor64 0
 DESC_CODE64:    Descriptor64 DA_64 | DA_C
 DESC_DATA64:    Descriptor64 DA_DRW
 
-Gdt64Length  equ $ - GDT64
-GDT64Pointer:  dw Gdt64Length - 1
-			   dd GDT64
+Gdt64Length equ $ - GDT64
+GDT64Pointer:   dw Gdt64Length - 1
+				dd GDT64
 
 SelectorCode64 equ DESC_CODE64 - GDT64
 SelectorData64 equ DESC_DATA64 - GDT64
 
 [section .text]
 [bits 16]
-Start:
+__Start:
 	mov     ax, cs
 	mov     ds, ax
 	mov     es, ax
@@ -82,7 +82,7 @@ Start:
 	int     0x13
 
 	mov     word [sectorNo], SectorNumOfRootDir
-SearchFile:
+__SearchFile:
 	cmp     word [rootDirSize], 0
 	jz      .FileNotFound
 	dec     word [rootDirSize]
@@ -91,7 +91,7 @@ SearchFile:
 	mov     bx, 0x8000
 	mov     ax, [sectorNo]
 	mov     cl, 1
-	call    ReadSector
+	call    __ReadSector
 	mov     si, KernelName
 	mov     di, 0x8000
 	cld
@@ -119,7 +119,7 @@ SearchFile:
 	jmp     .SearchKernel
 .NextSector:
 	add     word [sectorNo], 1
-	jmp     SearchFile
+	jmp     __SearchFile
 .FileNotFound:
 	mov     ax, 0x1301
 	mov     bx, 0x8C
@@ -154,7 +154,7 @@ SearchFile:
 	pop     bx
 	pop     ax
 	mov     cl, 1
-	call    ReadSector
+	call    __ReadSector
 	pop     ax
 ; =
 ; use expanded fs register to move kernel to memory over 1MB
@@ -188,7 +188,7 @@ SearchFile:
 	pop     eax
 	pop     cx
 ; =
-	call    GetFATEntry
+	call    __GetFATEntry
 	cmp     ax, 0xFFF
 	jz      .FileLoaded
 	push    ax
@@ -214,28 +214,25 @@ SearchFile:
 	int 	0x10
 	cmp     ax, 0x4F
 	jnz     .SetSVGAModeFail
-
 .EnableProtectMode:
 	cli
 	lgdt    [GDTPointer]
 	mov     eax, cr0
 	or      eax, 1
 	mov     cr0, eax
-	jmp     dword SelectorCode32:TempProtectMode
+	jmp     dword SelectorCode32:__TempProtectMode
 
 [bits 32]
-TempProtectMode:
+__TempProtectMode:
 	mov     ax, SelectorData32
 	mov     ds, ax
 	mov     es, ax
 	mov     fs, ax
 	mov     ss, ax
 	mov     esp, 0x7E00
-	call    QueryLongMode
+	call    __QueryLongMode
 	test    eax, eax
-	jz      QueryLongMode.QueryLongModeFail
-
-
+	jz      __QueryLongMode.QueryLongModeFail
 ; Temporary page table
 	mov     dword [0x90000], 0x91007
 	mov     dword [0x90800], 0x91007
@@ -248,8 +245,7 @@ TempProtectMode:
 	mov     dword [0x92018], 0x600083
 	mov     dword [0x92020], 0x800083
 	mov     dword [0x92028], 0xA00083
-
-; GDT
+; Load GDT
 	lgdt    [GDT64Pointer]
 	mov     ax, SelectorData64
     mov     ds, ax
@@ -258,34 +254,29 @@ TempProtectMode:
     mov     gs, ax
     mov     ss, ax
     mov     esp, 0x7E00
-
 ; Open PAE
 	mov     eax, cr4
 	bts     eax, 5
 	mov     cr4, eax
-
-; Load cr3
+; Set cr3
 	mov     eax, 0x90000
 	mov     cr3, eax
-
 ; Enable long mode
 	mov     ecx, 0xC0000080
 	rdmsr
 	bts     eax, 8
 	wrmsr
-
 ; Enable PE
 	mov     eax, cr0
 	bts     eax, 0
 	bts     eax, 31
 	mov     cr0, eax
-
 ; Enter Kernel
 	jmp     SelectorCode64:OffsetOfKernel
 
 [section .lib16]
 [bits 16]
-ReadSector:
+__ReadSector:
 	push    bp
 	mov     bp, sp
 	sub     esp, 2
@@ -310,7 +301,7 @@ ReadSector:
 	pop     bp
 	ret
 
-GetFATEntry:
+__GetFATEntry:
 	push    es
 	push    bx
 	push    ax
@@ -333,7 +324,7 @@ GetFATEntry:
 	mov     bx, 0x8000
 	add     ax, SectorNumOfFAT1
 	mov     cl, 2
-	call    ReadSector
+	call    __ReadSector
 	pop     dx
 	add     bx, dx
 	mov     ax, [es:bx]
@@ -348,8 +339,8 @@ GetFATEntry:
 
 [section .lib32]
 [bits 32]
-; void QueryLongMode()
-QueryLongMode:
+; void __QueryLongMode()
+__QueryLongMode:
 	mov     eax, 0x80000000
 	cpuid
 	cmp     eax, 0x80000001
@@ -366,7 +357,7 @@ QueryLongMode:
 	jmp     $
 
 LoaderMessage:      db "Loading..."
-KernelName:         db "KERNEL  BIN",0
+KernelName:         db "KERNEL  BIN", 0
 NoKernelMessage:    db "Missing file kernel.bin"
 
 rootDirSize         dw RootDirSectors
@@ -377,8 +368,6 @@ offsetOfKernelCount dd OffsetOfKernel
 MemStructNumber     dd 0
 SVGAModeCounter     dd 0
 
-%ifdef CL_LOADER_DEBUG
 MSG_GetMemoryError:     db "Get Memory Struct ERROR"
 MSG_GetSVGAInfoError:   db "Get SVGA VBE Info ERROR"
 MSG_GetSVGAModeInfoError:      db "Get SVGA Mode Info ERROR"
-%endif
