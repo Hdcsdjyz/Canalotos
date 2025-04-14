@@ -18,18 +18,18 @@ __Start:
 	mov	    es,	ax
 	mov	    ss,	ax
 	mov	    sp,	BaseOfStack
-; Clear screen
+; Clear screen.
 	mov     ah,	0x6     ; int 0x10 function: clear screen
 	mov     bx,	0x700
 	mov     cx,	0
 	mov     dx,	0x184F
 	int     0x10
-; Set cursor
+; Set cursor.
 	mov     ah,	0x2     ; int 0x10 function: set cursor
 	mov     bx, 0
 	mov     dx, 0
 	int     0x10
-; Print BootMessage
+; Print BootMessage.
 	mov     ax, 0x1301  ; int 0x10 function: print and set cursor to the end of string
 	mov     bx, 0xF
 	mov     dx, 0
@@ -40,12 +40,12 @@ __Start:
 	pop     ax
 	mov     bp, MSG_Boot
 	int     0x10
-; Reset floppy
+; Reset floppy.
 	xor     ah,	ah
 	xor     dl,	dl
 	int     0x13
 
-; Search loader
+; Search for loader.
 	mov     word [sectorNo], SectorNumOfRootDir
 __SearchFile:
 	cmp     word [rootDirSize], 0
@@ -109,10 +109,10 @@ __SearchFile:
 	mov     es, ax
 	mov     bx, OffsetOfLoader
 	mov     ax, cx
-; Get the FATs of loader.bin and call ReadSector to load it to memory until FAT=0xFFF
+; Get the FATs of loader.bin and call ReadSector to load it to memory until FAT=0xFFF.
 .LoadFile:
 ; =
-; Print '.' before load a sector
+; Print '.' before load a sector.
 	push    ax
 	push    bx
 	mov     ah, 0xE
@@ -137,8 +137,8 @@ __SearchFile:
 .FileLoaded:
 	jmp     BaseOfLoader:OffsetOfLoader
 
-; Read sector
-; void __ReadSector(ax=sectorToRead, cl=numOfSectors, es:bx=buffer)
+; void __ReadSector(ax=sectorToRead, cl=numOfSectors, es:bx=buffer);
+; Read sector.
 __ReadSector:
 	push    bp
 	mov     bp, sp
@@ -164,8 +164,8 @@ __ReadSector:
 	pop     bp
 	ret
 
-; Get FAt Entry
-; bool __GetFATEntry(ah=numOfFAT) -> [odd]
+; bool __GetFATEntry(ah=numOfFAT) -> [odd];
+; Get FAt Entry.
 __GetFATEntry:
 	push    es
 	push    bx
@@ -202,13 +202,18 @@ __GetFATEntry:
 	pop     es
 	ret
 
-rootDirSize     dw RootDirSectors
-sectorNo        dw 0
-odd             db 0
-
-MSG_Boot:        db "Booting..."
-LoaderFileName:  db "LOADER  BIN", 0
-MSG_NoLoader:    db "Missing file loader.bin"
+rootDirSize:
+	dw RootDirSectors
+sectorNo:
+	dw 0
+odd:
+	db 0
+MSG_Boot:
+	db "Booting..."
+LoaderFileName:
+	db "LOADER  BIN", 0
+MSG_NoLoader:
+	db "Missing file loader.bin"
 
 	resb    510 - ($ - $$)
 	dw      0xaa55

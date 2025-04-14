@@ -1,14 +1,14 @@
 /**
  * @file: kernel/main.c
  * @author: lhxl
- * @data: 2025-4-12
- * @version: build5
+ * @data: 2025-4-14
+ * @version: build6
  **/
 
 #include "kernel/global.h"
 #include "kernel/printk.h"
 
-void __start_kernel()
+void __kernel_main()
 {
     screen.Resolution.x = 1440;
 	screen.Resolution.y = 900;
@@ -23,6 +23,6 @@ void __start_kernel()
 	__color_printk(0xFFFF0000, 0x00000000, "This is build: %d, %x, %o, %b\n", 5, 5, 5, 5);
     while (1)
     {
-
+		int a = 1 / 0;
     }
 }

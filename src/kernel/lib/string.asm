@@ -1,17 +1,17 @@
 ; @file: kernel/lib/string.asm
 ; @author: lhxl
-; @data: 2025-4-12
-; @version: build5
+; @data: 2025-4-14
+; @version: build6
+
+global  strlen
+global	memcpy
+global	memset
+global  strcpy
 
 [section .text]
 [bits 64]
 
-global	memcpy
-global	memset
-global  strcpy
-global  strlen
-
-; size_t strlen(const char* str)
+; size_t strlen(const char* str);
 strlen:
 	push    rsi
 	mov		rsi, rdi
@@ -25,7 +25,7 @@ strlen:
 	pop     rsi
 	ret
 
-; void* memcpy(void* p_dst, void* p_src, size_t size)
+; void* memcpy(void* p_dst, void* p_src, size_t size);
 memcpy:
 	push	r8
 	push	r9
