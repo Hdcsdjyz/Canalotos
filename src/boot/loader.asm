@@ -16,30 +16,6 @@ TempBaseOfKernel    equ 0
 TempOffsetOfKernel  equ 0x7E00
 MemoryBuffer        equ 0x7E00
 
-[section .gdt]
-GDT:          Descriptor 0,          0,       0
-DESC_CODE32:  Descriptor 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_CR
-DESC_DATA32:  Descriptor 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_DRW
-
-GDTLength equ $ - GDT
-GDTPointer:     dw GDTLength - 1
-				dd GDT
-
-SelectorCode32 equ DESC_CODE32 - GDT
-SelectorData32 equ DESC_DATA32 - GDT
-
-[section .gdt64]
-GDT64:          Descriptor64 0
-DESC_CODE64:    Descriptor64 DA_64 | DA_C
-DESC_DATA64:    Descriptor64 DA_DRW
-
-Gdt64Length equ $ - GDT64
-GDT64Pointer:   dw Gdt64Length - 1
-				dd GDT64
-
-SelectorCode64 equ DESC_CODE64 - GDT64
-SelectorData64 equ DESC_DATA64 - GDT64
-
 [section .text]
 [bits 16]
 __Start:
@@ -49,7 +25,7 @@ __Start:
 	mov     ax,	0
 	mov     ss, ax
 	mov     sp, 0x7C00
-; Print loader message
+; Print loader message.
 	mov     ax, 0x1301
 	mov     bx, 0xF
 	mov     dx, 0x200
@@ -60,7 +36,7 @@ __Start:
 	pop     ax
 	mov     bp, LoaderMessage
 	int     0x10
-; Enter protect mode and expand fs register
+; Enter protect mode and expand fs register.
 	push    ax
 	in      al, 0x92
 	or      al, 0b00000010
@@ -71,7 +47,7 @@ __Start:
 	mov     eax, cr0
 	or      eax, 1
 	mov     cr0, eax
-	mov     ax, SelectorData32
+	mov     ax, Selector_Kernel_Data32
 	mov     fs, ax
 	mov     eax, cr0
 	and     al, 0b11111110
@@ -157,8 +133,8 @@ __SearchFile:
 	call    __ReadSector
 	pop     ax
 ; =
-; use expanded fs register to move kernel to memory over 1MB
-; the method may cause fault on physical machine
+; Use expanded fs register to move kernel to memory over 1MB.
+; The method may cause fault on physical machine.
 	push    cx
 	push    eax
 	push    fs
@@ -220,11 +196,11 @@ __SearchFile:
 	mov     eax, cr0
 	or      eax, 1
 	mov     cr0, eax
-	jmp     dword SelectorCode32:__TempProtectMode
+	jmp     dword Selector_Kernel_Code32:__TempProtectMode
 
 [bits 32]
 __TempProtectMode:
-	mov     ax, SelectorData32
+	mov     ax, Selector_Kernel_Data32
 	mov     ds, ax
 	mov     es, ax
 	mov     fs, ax
@@ -233,7 +209,7 @@ __TempProtectMode:
 	call    __QueryLongMode
 	test    eax, eax
 	jz      __QueryLongMode.QueryLongModeFail
-; Temporary page table
+; Reserve for temporary page table.
 	mov     dword [0x90000], 0x91007
 	mov     dword [0x90800], 0x91007
 
@@ -245,34 +221,34 @@ __TempProtectMode:
 	mov     dword [0x92018], 0x600083
 	mov     dword [0x92020], 0x800083
 	mov     dword [0x92028], 0xA00083
-; Load GDT
+; Load GDT.
 	lgdt    [GDT64Pointer]
-	mov     ax, SelectorData64
+	mov     ax, Selector_Kernel_Data64
     mov     ds, ax
     mov     es, ax
     mov     fs, ax
     mov     gs, ax
     mov     ss, ax
     mov     esp, 0x7E00
-; Open PAE
+; Open PAE.
 	mov     eax, cr4
 	bts     eax, 5
 	mov     cr4, eax
-; Set cr3
+; Set cr3.
 	mov     eax, 0x90000
 	mov     cr3, eax
-; Enable long mode
+; Enable long mode.
 	mov     ecx, 0xC0000080
 	rdmsr
 	bts     eax, 8
 	wrmsr
-; Enable PE
+; Enable PE.
 	mov     eax, cr0
 	bts     eax, 0
 	bts     eax, 31
 	mov     cr0, eax
-; Enter Kernel
-	jmp     SelectorCode64:OffsetOfKernel
+; Enter Kernel.
+	jmp     Selector_Kernel_Code64:OffsetOfKernel
 
 [section .lib16]
 [bits 16]
@@ -356,18 +332,46 @@ __QueryLongMode:
 .QueryLongModeFail:
 	jmp     $
 
-LoaderMessage:      db "Loading..."
-KernelName:         db "KERNEL  BIN", 0
-NoKernelMessage:    db "Missing file kernel.bin"
+[section .gdt]
+GDT:
+	Descriptor 0,          0,       0
+GDT_Kernel_Code32:
+	Descriptor 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_CR
+GDT_Kernel_Data32:
+	Descriptor 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_DRW
+GDTLength equ $ - GDT
+GDTPointer:
+	dw GDTLength - 1
+	dd GDT
+Selector_Kernel_Code32 equ GDT_Kernel_Code32 - GDT
+Selector_Kernel_Data32 equ GDT_Kernel_Data32 - GDT
 
-rootDirSize         dw RootDirSectors
-sectorNo            dw 0
-odd                 db 0
-offsetOfKernelCount dd OffsetOfKernel
+[section .gdt64]
+GDT64:
+	Descriptor64 0
+GDT_Kernel_Code64:
+	Descriptor64 DA_64 | DA_C
+GDT_Kernel_Data64:
+	Descriptor64 DA_DRW
+Gdt64Length equ $ - GDT64
+GDT64Pointer:
+	dw Gdt64Length - 1
+	dd GDT64
+Selector_Kernel_Code64 equ GDT_Kernel_Code64 - GDT64
+Selector_Kernel_Data64 equ GDT_Kernel_Data64 - GDT64
 
-MemStructNumber     dd 0
-SVGAModeCounter     dd 0
+LoaderMessage:
+	db "Loading..."
+KernelName:
+	db "KERNEL  BIN", 0
+NoKernelMessage:
+	db "Missing file kernel.bin"
 
-MSG_GetMemoryError:     db "Get Memory Struct ERROR"
-MSG_GetSVGAInfoError:   db "Get SVGA VBE Info ERROR"
-MSG_GetSVGAModeInfoError:      db "Get SVGA Mode Info ERROR"
+rootDirSize:
+	dw RootDirSectors
+sectorNo:
+	dw 0
+odd:
+	db 0
+offsetOfKernelCount:
+	dd OffsetOfKernel

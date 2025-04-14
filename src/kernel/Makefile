@@ -13,7 +13,7 @@ CC = gcc
 LD = ld
 
 ASMFLAGS = -f elf64 -w-zeroing
-CCFLAGS = -mcmodel=large -fno-builtin -m64 -c -I ../include -std=c23 -fno-stack-protector -O
+CCFLAGS = -mcmodel=large -fno-builtin -m64 -c -I ../include -std=c23 -fno-stack-protector
 LDFLAGS = -b elf64-x86-64 -T kernel.lds -s --no-warn-rwx-segments
 
 obj = $(ObjectFile)head.o\

@@ -44,7 +44,7 @@ PG_USS          equ 0x00    ; 系统级
 PG_USU          equ 0x04    ; 用户级
 
 ; 用法：Descriptor base, limit, attribute
-%macro Descriptor 3
+%macro Descriptor32 3
 	dw %2 & 0xFFFF
 	dw %1 & 0xFFFF
 	db (%1 >> 16) & 0xFF
@@ -53,7 +53,7 @@ PG_USU          equ 0x04    ; 用户级
 %endmacro
 
 ; usage：Descriptor64 attribute
-%macro Descriptor64 1
+%macro Descriptor 1
 	dd 0
 	db 0
 	dw %1 & 0xF0FF

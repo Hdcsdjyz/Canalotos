@@ -3,15 +3,15 @@
 ; @data: 2025-4-12
 ; @version: build5
 
-[section .text]
-[bits 64]
-
+global  strlen
 global	memcpy
 global	memset
 global  strcpy
-global  strlen
 
-; size_t strlen(const char* str)
+[section .text]
+[bits 64]
+
+; size_t strlen(const char* str);
 strlen:
 	push    rsi
 	mov		rsi, rdi
@@ -25,7 +25,7 @@ strlen:
 	pop     rsi
 	ret
 
-; void* memcpy(void* p_dst, void* p_src, size_t size)
+; void* memcpy(void* p_dst, void* p_src, size_t size);
 memcpy:
 	push	r8
 	push	r9

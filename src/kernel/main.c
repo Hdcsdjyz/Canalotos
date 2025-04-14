@@ -23,6 +23,6 @@ void __start_kernel()
 	__color_printk(0xFFFF0000, 0x00000000, "This is build: %d, %x, %o, %b\n", 5, 5, 5, 5);
     while (1)
     {
-
+		int a = 1 / 0;
     }
 }
