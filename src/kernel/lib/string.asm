@@ -1,7 +1,7 @@
 ; @file: kernel/lib/string.asm
 ; @author: lhxl
-; @data: 2025-4-14
-; @version: build6
+; @data: 2025-4-17
+; @version: build7
 
 global  strlen
 global	memcpy

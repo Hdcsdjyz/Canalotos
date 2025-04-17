@@ -1,7 +1,7 @@
 ; @file: kernel/macro.inc
 ; @author: lhxl
-; @data: 2025-4-14
-; @version: build6
+; @data: 2025-4-17
+; @version: build7
 
 ; segment attribute
 DA_64           equ 0x2000  ; 64-bit code segment

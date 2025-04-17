@@ -1,7 +1,7 @@
 # @file: kernel/Makefile
 # @author: lhxl
-# @data: 2025-4-14
-# @version: build6
+# @data: 2025-4-17
+# @version: build7
 
 OutputFile = ../../Canalotos/bin/kernel/
 ObjectFile = ../../Canalotos/obj/kernel/
@@ -20,6 +20,8 @@ obj = $(ObjectFile)head.o\
 	$(ObjectFile)main.o\
 	$(ObjectFile)printk.o\
 	$(ObjectFile)global.o\
+	$(ObjectFile)traps.o\
+	$(ObjectFile)fault.o\
 	$(ObjectFile)lib/*.o
 
 .PHONY: all

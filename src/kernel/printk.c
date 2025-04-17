@@ -1,24 +1,38 @@
 /**
  * @file: kernel/printk.c
  * @author: lhxl
- * @data: 2025-4-12
- * @version: build5
+ * @data: 2025-4-17
+ * @version: build7
  **/
 
-#include "kernel/const.h"
+#include "kernel/function.h"
 #include "kernel/global.h"
 #include "kernel/font.h"
+#include "kernel/init.h"
 
 #include "kernel/printk.h"
 
-PRIVATE char* __itoa(char* buffer, long long number, int base, u8 sign);
+PRIVATE char* __itoa(const char* buffer, u64 number, int base, u8 precision, u8 flags);
+
+void init_screen()
+{
+	screen.Resolution.x = 1440;
+	screen.Resolution.y = 900;
+	screen.Position.x = 0;
+	screen.Position.y = 0;
+	screen.CharSize.x = 8;
+	screen.CharSize.y = 16;
+	screen.bufferAddress = (u32*)0xFFFF800000A00000;
+	screen.bufferSize = screen.Position.x * screen.Position.y * 4;
+}
 
 int __printk(const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	__color_printk(0x00000000, 0xFFFFFFFF, format, args);
+	int i = __color_printk(0x00FFFFFFFF, 0x00000000, format, args);
 	va_end(args);
+    return i;
 }
 
 int __color_printk(u32 frontColor, u32 backgroundColor, const char* format, ...)
@@ -63,8 +77,9 @@ int __color_printk(u32 frontColor, u32 backgroundColor, const char* format, ...)
 int __vsprintf(char* buffer, const char* format, va_list args)
 {
 	char* pbuffer = buffer;
-	int flag_format = false;
-	int flag_long = false;
+	u8 flag_format = false;
+	u8 flag_long = false;
+	u8 flag_negative = false;
 	int precision = 0;
 	while (*format != '\0')
 	{
@@ -82,41 +97,46 @@ int __vsprintf(char* buffer, const char* format, va_list args)
 				precision = *format - '0';
 				break;
 			case 'b':
-				flag_format = false;
 				if (flag_long == true)
 				{
+					pbuffer = __itoa(pbuffer, va_arg(args, u64), 2, precision, true);
+					flag_format = false;
 					flag_long = false;
-					pbuffer = __itoa(pbuffer, va_arg(args, u64), 2, precision);
 					break;
 				}
-				pbuffer = __itoa(pbuffer, va_arg(args, u32), 2, precision);
+				pbuffer = __itoa(pbuffer, va_arg(args, u32), 2, precision, true);
+				flag_format = false;
 				break;
 			case 'c':
 				flag_format = false;
 				*pbuffer++ = (char)va_arg(args, u32);
 				break;
 			case 'd':
-				flag_format = false;
 				if (flag_long == true)
 				{
+					pbuffer = __itoa(pbuffer, va_arg(args, u64), 10, precision, flag_negative);
+					flag_format = false;
 					flag_long = false;
-					pbuffer = __itoa(pbuffer, va_arg(args, u64), 10, precision);
+					flag_negative = false;
 					break;
 				}
-				pbuffer = __itoa(pbuffer, va_arg(args, u32), 10, precision);
+				pbuffer = __itoa(pbuffer, va_arg(args, u32), 10, precision, flag_negative);
+				flag_format = false;
+				flag_negative = false;
 				break;
 			case 'l':
 				flag_long = true;
 				break;
 			case 'o':
-				flag_format = false;
 				if (flag_long == true)
 				{
+					pbuffer = __itoa(pbuffer, va_arg(args, u64), 8, precision, true);
+					flag_format = false;
 					flag_long = false;
-					pbuffer = __itoa(pbuffer, va_arg(args, u64), 8, precision);
 					break;
 				}
-				pbuffer = __itoa(pbuffer, va_arg(args, u32), 8, precision);
+				pbuffer = __itoa(pbuffer, va_arg(args, u32), 8, precision, true);
+				flag_format = false;
 				break;
 			case 's':
 				flag_format = false;
@@ -127,15 +147,19 @@ int __vsprintf(char* buffer, const char* format, va_list args)
 					str++;
 				}
 				break;
+			case 'u':
+				flag_negative = true;
+				break;
 			case 'x':
-				flag_format = false;
 				if (flag_long == true)
 				{
+					pbuffer = __itoa(pbuffer, va_arg(args, u64), 16, precision, true);
+					flag_format = false;
 					flag_long = false;
-					pbuffer = __itoa(pbuffer, va_arg(args, u64), 16, precision);
 					break;
 				}
-				pbuffer = __itoa(pbuffer, va_arg(args, u32), 16, precision);
+				pbuffer = __itoa(pbuffer, va_arg(args, u32), 16, precision, true);
+				flag_format = false;
 				break;
 			case '%':
 			default:
@@ -177,16 +201,17 @@ void __putchar(u32 frontColor, u32 backgroundColor, u8 character)
 	}
 }
 
-PRIVATE char* __itoa(char* buffer, long long number, int base, u8 precision)
+PRIVATE char* __itoa(const char* buffer, u64 number, int base, u8 precision, u8 flags)
 {
-	long long temp = number;
+    u64 temp = number;
 	char temp_buffer[64] = {0};
 	char* p_buffer = buffer;
 	char* p_temp_buffer = temp_buffer;
 	u8 size = 0;
-	if (temp < 0)
+	if (temp < 0 && !flags && base == 10)
 	{
-		temp = -temp;
+	    s64 neg_temp = (s64)temp;
+		temp = (u64)neg_temp;
 		*p_buffer++ = '-';
 	}
 	if (temp == 0)

@@ -1,7 +1,7 @@
 ; @file: kernel/head.asm
 ; @author: lhxl
-; @data: 2025-4-14
-; @version: build6
+; @data: 2025-4-17
+; @version: build7
 
 %include "macro.inc"
 
@@ -96,6 +96,9 @@ Init_TSS:
 	db      0x48
 	retf
 
+IStartKernel:
+	dq      __kernel_main
+
 ; The default interrupt handler save all general registers and print message "Unknown Interrupt".
 ignore_int:
     cld
@@ -151,9 +154,6 @@ Loop:
     pop     rbx
     pop     rax
     iret
-
-IStartKernel:
-	dq      __kernel_main
 
 	align   8
 	times   0x1000 - ($ - $$) db 0

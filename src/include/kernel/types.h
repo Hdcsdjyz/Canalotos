@@ -1,8 +1,8 @@
 /**
  * @file: include/kernel/types.h
  * @author: lhxl
- * @data: 2025-4-12
- * @version: build5
+ * @data: 2025-4-17
+ * @version: build7
  **/
 
 #ifndef _KRENEL_TYPES_H_
@@ -21,5 +21,7 @@ typedef long long	s64;
 typedef unsigned long long size_t;
 
 typedef unsigned long long ptr_t;
+
+typedef void (*int_handler)();
 
 #endif
