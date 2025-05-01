@@ -1,9 +1,10 @@
-Changes in build7
+Changes in build8
+2025-5-1
 
-1. Added fault handler entry in file "kernel/fault.asm".
+1. Add a simple memory manager and only hava memory initialization and page allocator
 
-2. Added and set fault handler in file "kernel/traps.c"
+2. Fix bugs in "int __printk(const char* format, ...)" and "PRIVATE char* __itoa(const char* buffer, u64 number, int base, u8 precision, u8 flags)"
 
-2. Fixed the issue that function `__itoa(const char* buffer, u64 number, int base, u8 precision, u8 flags)` in file "kernel/printk.c" cannot handle 64-bit data correctly.
+3. Rewrite void "memset(void* p_dst, char ch, size_t size)"
 
-3. Moved screen initialization code to function `void init_screen()` in file "kernel/printk.c"
+4. "set_tss" and "load_tr"

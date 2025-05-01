@@ -10,7 +10,8 @@
 
 size_t strlen(const char* str);
 void* memcpy(void* p_dst, void* p_src, size_t size);
-void memset(void* p_dst, char ch, int size);
+void memset(void* p_dst, char ch, size_t size);
 char* strcpy(char* p_dst, char* p_src);
+int memcmp(void* p_dst, void* p_src, size_t size);
 
 #endif

@@ -1,7 +1,7 @@
 # @file: kernel/Makefile
 # @author: lhxl
-# @data: 2025-4-17
-# @version: build7
+# @data: 2025-5-1
+# @version: build8
 
 OutputFile = ../../Canalotos/bin/kernel/
 ObjectFile = ../../Canalotos/obj/kernel/
@@ -13,8 +13,8 @@ CC = gcc
 LD = ld
 
 ASMFLAGS = -f elf64 -w-zeroing
-CCFLAGS = -mcmodel=large -fno-builtin -m64 -c -I ../include -std=c23 -fno-stack-protector
-LDFLAGS = -b elf64-x86-64 -T kernel.lds -s --no-warn-rwx-segments
+CCFLAGS = -mcmodel=large -fno-builtin -m64 -c -I ../include -fno-stack-protector -std=c23# -Wdiscarded-qualifiers -O0 -s
+LDFLAGS = -b elf64-x86-64 -T kernel.lds -z muldefs #-s --no-warn-rwx-segments
 
 obj = $(ObjectFile)head.o\
 	$(ObjectFile)main.o\
@@ -22,6 +22,7 @@ obj = $(ObjectFile)head.o\
 	$(ObjectFile)global.o\
 	$(ObjectFile)traps.o\
 	$(ObjectFile)fault.o\
+	$(ObjectFile)memory.o\
 	$(ObjectFile)lib/*.o
 
 .PHONY: all

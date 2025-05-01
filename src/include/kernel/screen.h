@@ -1,14 +1,14 @@
 /**
  * @file: include/kernel/screen.h
  * @author: lhxl
- * @data: 2025-4-12
- * @version: build5
+ * @data: 2025-5-1
+ * @version: build8
  **/
 
 #ifndef _KERNEL_PRINTK_H_
 #define _KERNEL_PRINTK_H_
 
-#include "kernel/types.h"
+#include <kernel/types.h>
 
 struct Screen
 {

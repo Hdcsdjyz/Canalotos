@@ -1,9 +1,18 @@
-BasedOnStyle: Microsoft
+BasedOnStyle : Microsoft
 
+AlignAfterOpenBracket : Align
 AlignConsecutiveAssignments : true
 AlignTrailingComments : true
-BreakBeforeBraces: Allman
-ColumnLimit: 120
+BreakBeforeBraces : Allman
+ColumnLimit : 120
+ContinuationIndentWidth : 0
 IndentCaseLabels : false
-IndentWidth: 4
-TabWidth: 4
+IndentWidth : 4
+InsertBraces : false
+PointerAlignment : Left
+SortIncludes : Never
+SpaceAfterCStyleCast : false
+SpaceBeforeParens : ControlStatements
+SpaceInEmptyBlock: true
+UseTab : AlignWithSpaces
+TabWidth : 4

@@ -1,7 +1,7 @@
 ; @file: boot/boot.asm
 ; @author: lhxl
-; @data: 2025-4-12
-; @version: build5
+; @data: 2025-5-1
+; @version: build8
 
 BaseOfStack         equ	0x7c00
 BaseOfLoader        equ 0x1000
@@ -28,17 +28,6 @@ __Start:
 	mov     ah,	0x2     ; int 0x10 function: set cursor
 	mov     bx, 0
 	mov     dx, 0
-	int     0x10
-; Print BootMessage.
-	mov     ax, 0x1301  ; int 0x10 function: print and set cursor to the end of string
-	mov     bx, 0xF
-	mov     dx, 0
-	mov     cx, 10
-	push	ax
-	mov     ax, ds
-	mov     es, ax
-	pop     ax
-	mov     bp, MSG_Boot
 	int     0x10
 ; Reset floppy.
 	xor     ah,	ah
@@ -111,17 +100,6 @@ __SearchFile:
 	mov     ax, cx
 ; Get the FATs of loader.bin and call ReadSector to load it to memory until FAT=0xFFF.
 .LoadFile:
-; =
-; Print '.' before load a sector.
-	push    ax
-	push    bx
-	mov     ah, 0xE
-	mov     al, '.'
-	mov     bl, 0xF
-	int     0x10
-	pop     bx
-	pop     ax
-; =
 	mov     cl, 1
 	call    __ReadSector
 	pop     ax
@@ -202,14 +180,9 @@ __GetFATEntry:
 	pop     es
 	ret
 
-rootDirSize:
-	dw RootDirSectors
-sectorNo:
-	dw 0
-odd:
-	db 0
-MSG_Boot:
-	db "Booting..."
+rootDirSize dw RootDirSectors
+sectorNo    dw 0
+odd db 0
 LoaderFileName:
 	db "LOADER  BIN", 0
 MSG_NoLoader:

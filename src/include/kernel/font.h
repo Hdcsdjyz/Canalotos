@@ -8,7 +8,7 @@
 #ifndef _KERNEL_FONT_H_
 #define _KERNEL_FONT_H_
 
-#include "kernel/types.h"
+#include <kernel/types.h>
 
 u8 font_ascii[256][16] = {
 	/* 0x00 '' */

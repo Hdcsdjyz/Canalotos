@@ -5,12 +5,15 @@
  * @version: build7
  **/
 
-#include "kernel/function.h"
-#include "kernel/global.h"
-#include "kernel/font.h"
-#include "kernel/init.h"
 
-#include "kernel/printk.h"
+#include <kernel/types.h>
+#include <kernel/const.h>
+#include <kernel/function.h>
+#include <kernel/global.h>
+#include <kernel/font.h>
+#include <kernel/init.h>
+
+#include <kernel/printk.h>
 
 PRIVATE char* __itoa(const char* buffer, u64 number, int base, u8 precision, u8 flags);
 
@@ -23,16 +26,46 @@ void init_screen()
 	screen.CharSize.x = 8;
 	screen.CharSize.y = 16;
 	screen.bufferAddress = (u32*)0xFFFF800000A00000;
-	screen.bufferSize = screen.Position.x * screen.Position.y * 4;
+	screen.bufferSize = screen.Position.x * screen.Position.y * 4 + PAGE_4K - 1 & PAGE_4K_MASK;
 }
 
 int __printk(const char* format, ...)
 {
+	char buffer[1024] = {0};
 	va_list args;
 	va_start(args, format);
-	int i = __color_printk(0x00FFFFFFFF, 0x00000000, format, args);
+	int i = __vsprintf(buffer, format, args);
 	va_end(args);
-    return i;
+	for (int j = 0; j < i; j++)
+	{
+		switch (buffer[j])
+		{
+		case '\r':
+		case '\n':
+			screen.Position.x = 0;
+			screen.Position.y = screen.Position.y + screen.CharSize.y + 1;
+			continue;
+		case '\t':
+			do
+			{
+				__putchar(WHITE, BLACK, ' ');
+			} while (screen.Position.x % (screen.CharSize.x * 4) != 0);
+			continue;
+		case '\'':
+			__putchar(WHITE, BLACK, '\'');
+			continue;
+		case '\"':
+			__putchar(WHITE, BLACK, '\"');
+			continue;
+		case '\\':
+			__putchar(WHITE, BLACK, '\\');
+			continue;
+		default:
+			break;
+		}
+		__putchar(WHITE, BLACK, buffer[j]);
+	}
+	return i;
 }
 
 int __color_printk(u32 frontColor, u32 backgroundColor, const char* format, ...)
@@ -77,69 +110,76 @@ int __color_printk(u32 frontColor, u32 backgroundColor, const char* format, ...)
 int __vsprintf(char* buffer, const char* format, va_list args)
 {
 	char* pbuffer = buffer;
-	u8 flag_format = false;
-	u8 flag_long = false;
-	u8 flag_negative = false;
+	u8 flag_format = FALSE;
+	u8 flag_long = FALSE;
+	u8 flag = 0;
 	int precision = 0;
 	while (*format != '\0')
 	{
-		if (*format == '%' && flag_format == false)
+		if (*format == '%' && flag_format == FALSE)
 		{
-			flag_format = true;
+			flag_format = TRUE;
 			format++;
 			continue;
 		}
-		if (flag_format == true)
+		if (flag_format == TRUE)
 		{
 			switch (*format)
 			{
 			case '0'...'9':
-				precision = *format - '0';
+			    precision *= 10;
+				precision += *format - '0';
 				break;
 			case 'b':
-				if (flag_long == true)
+				if (flag_long == TRUE)
 				{
-					pbuffer = __itoa(pbuffer, va_arg(args, u64), 2, precision, true);
-					flag_format = false;
-					flag_long = false;
+					pbuffer = __itoa(pbuffer, va_arg(args, u64), 2, precision, TRUE);
+					flag_format = FALSE;
+					flag_long = FALSE;
+				    precision = 0;
 					break;
 				}
-				pbuffer = __itoa(pbuffer, va_arg(args, u32), 2, precision, true);
-				flag_format = false;
+				pbuffer = __itoa(pbuffer, va_arg(args, u32), 2, precision, TRUE);
+				flag_format = FALSE;
+			    precision = 0;
 				break;
 			case 'c':
-				flag_format = false;
+				flag_format = FALSE;
 				*pbuffer++ = (char)va_arg(args, u32);
 				break;
 			case 'd':
-				if (flag_long == true)
+				if (flag_long == TRUE)
 				{
-					pbuffer = __itoa(pbuffer, va_arg(args, u64), 10, precision, flag_negative);
-					flag_format = false;
-					flag_long = false;
-					flag_negative = false;
+					pbuffer = __itoa(pbuffer, va_arg(args, u64), 10, precision, flag);
+					flag_format = FALSE;
+					flag_long = FALSE;
+					flag = FALSE;
+				    precision = 0;
 					break;
 				}
-				pbuffer = __itoa(pbuffer, va_arg(args, u32), 10, precision, flag_negative);
-				flag_format = false;
-				flag_negative = false;
+				pbuffer = __itoa(pbuffer, va_arg(args, u32), 10, precision, flag);
+				flag_format = FALSE;
+				flag = FALSE;
+			    precision = 0;
 				break;
 			case 'l':
-				flag_long = true;
+				flag_long = TRUE;
 				break;
 			case 'o':
-				if (flag_long == true)
+				if (flag_long == TRUE)
 				{
-					pbuffer = __itoa(pbuffer, va_arg(args, u64), 8, precision, true);
-					flag_format = false;
-					flag_long = false;
+					pbuffer = __itoa(pbuffer, va_arg(args, u64), 8, precision, TRUE);
+					flag_format = FALSE;
+					flag_long = FALSE;
+				    precision = 0;
 					break;
 				}
-				pbuffer = __itoa(pbuffer, va_arg(args, u32), 8, precision, true);
-				flag_format = false;
+				pbuffer = __itoa(pbuffer, va_arg(args, u32), 8, precision, TRUE);
+				flag_format = FALSE;
+			    precision = 0;
 				break;
 			case 's':
-				flag_format = false;
+				flag_format = FALSE;
 				char* str = (char*)va_arg(args, ptr_t);
 				while (*str)
 				{
@@ -148,22 +188,24 @@ int __vsprintf(char* buffer, const char* format, va_list args)
 				}
 				break;
 			case 'u':
-				flag_negative = true;
+				flag |= 1;
 				break;
 			case 'x':
-				if (flag_long == true)
+				if (flag_long == TRUE)
 				{
-					pbuffer = __itoa(pbuffer, va_arg(args, u64), 16, precision, true);
-					flag_format = false;
-					flag_long = false;
+					pbuffer = __itoa(pbuffer, va_arg(args, u64), 16, precision, TRUE);
+					flag_format = FALSE;
+					flag_long = FALSE;
+				    precision = 0;
 					break;
 				}
-				pbuffer = __itoa(pbuffer, va_arg(args, u32), 16, precision, true);
-				flag_format = false;
+				pbuffer = __itoa(pbuffer, va_arg(args, u32), 16, precision, TRUE);
+				flag_format = FALSE;
+			    precision = 0;
 				break;
 			case '%':
 			default:
-				flag_format = false;
+				flag_format = FALSE;
 				*pbuffer++ = '%';
 				break;
 			}
@@ -204,34 +246,43 @@ void __putchar(u32 frontColor, u32 backgroundColor, u8 character)
 PRIVATE char* __itoa(const char* buffer, u64 number, int base, u8 precision, u8 flags)
 {
     u64 temp = number;
+	s64 stemp = (s64)number;
 	char temp_buffer[64] = {0};
 	char* p_buffer = buffer;
 	char* p_temp_buffer = temp_buffer;
 	u8 size = 0;
-	if (temp < 0 && !flags && base == 10)
+    if (temp == 0)
+    {
+        *p_buffer++ = '0';
+    }
+	else if (stemp < 0 &&flags | 1 == 0 && base == 10)
 	{
-	    s64 neg_temp = (s64)temp;
-		temp = (u64)neg_temp;
 		*p_buffer++ = '-';
+		stemp = -stemp;
+		while (stemp > 0)
+		{
+			int rem = (int)(stemp % base);
+			stemp /= base;
+			*p_temp_buffer++ = rem < 10 ? rem + '0' : rem + 'A' - 10;
+			size++;
+		}
 	}
-	if (temp == 0)
+	else
 	{
-		*p_buffer++ = '0';
-		return p_buffer;
-	}
-	while (temp > 0)
-	{
-		int rem = (int)(temp % base);
-		temp /= base;
-		*p_temp_buffer++ = rem < 10 ? rem + '0' : rem + 'A' - 10;
-		size++;
+		while (temp > 0)
+		{
+			int rem = (int)(temp % base);
+			temp /= base;
+			*p_temp_buffer++ = rem < 10 ? rem + '0' : rem + 'A' - 10;
+			size++;
+		}
 	}
 	if (precision > size)
 	{
 		precision -= size;
 		while (precision > 0)
 		{
-			*p_temp_buffer++ = ' ';
+			*p_temp_buffer++ = '0';
 			precision--;
 		}
 	}

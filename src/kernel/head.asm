@@ -1,7 +1,7 @@
 ; @file: kernel/head.asm
 ; @author: lhxl
-; @data: 2025-4-17
-; @version: build7
+; @data: 2025-5-1
+; @version: build8
 
 %include "macro.inc"
 
@@ -19,8 +19,6 @@ __start:
 	mov     esp, 0x7E00
 	lgdt    [rel GDT_Pointer]
 	lidt    [rel IDT_Pointer]
-; =
-; Setup segment register.
 	mov     ax, Selector_Kernel_Data
 	mov     ds, ax
 	mov     es, ax
@@ -28,7 +26,6 @@ __start:
 	mov     gs, ax
 	mov     ss, ax
 	mov     rsp, 0x7E00
-; =
 	mov     rax, 0x101000
 	mov     cr3, rax
 	mov     rax, [rel IEntry]
@@ -65,7 +62,8 @@ Load_IDT:
 	mov     [rdi], rax
 	mov     [rdi + 8], rdx
 	add     rdi, 0x10
-	loop    Load_IDT
+	dec     rcx
+	jne     Load_IDT
 
 ; Init the TSS
 Init_TSS:
@@ -87,8 +85,6 @@ Init_TSS:
 	mov     qword [rel GDT_TSS0], rax
 	shr     rdx, 32
 	mov     qword [rel GDT_TSS1], rdx
-	mov     ax, Selector_TSS
-	ltr     ax
 	; jump to kernel
 	mov     rax, [rel IStartKernel]
 	push    Selector_Kernel_Code
@@ -155,17 +151,19 @@ Loop:
     pop     rax
     iret
 
-	align   8
+align 8
 	times   0x1000 - ($ - $$) db 0
 __PML4E:
 	dq      0x102007
 	resq    255
 	dq      0x102007
 	resq    255
+
 	times   0x2000 - ($ - $$) db 0
 __PDPTE:
 	dq      0x103003
 	resq    511
+
 	times   0x3000 - ($ - $$) db 0
 __PDE:
 	dq      0x83
@@ -183,8 +181,8 @@ __PDE:
 	dq      0xE0E00083
 	resq    499
 
+[section .data]
 global GDT
-[section .gdt]
 GDT:
 	Descriptor 0
 GDT_Kernel_Code:
@@ -199,15 +197,16 @@ GDT_Kernel_Code32:
 	Descriptor32 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_CR
 GDT_Kernel_Data32:
 	Descriptor32 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_DRW
-; GDT_NULL:
-; 	dq 0
-; 	dq 0
-GDT_TSS0:   dq 0
-GDT_TSS1:	dq 0
+GDT_NULL:
+	Descriptor 0
+GDT_TSS0:
+	dq      0
+GDT_TSS1:
+	dq      0
 GDT_Length equ $ - GDT
 GDT_Pointer:
-	dw GDT_Length - 1
-	dq GDT
+	dw      GDT_Length - 1
+	dq      GDT
 Selector_Kernel_Code equ GDT_Kernel_Code - GDT
 Selector_Kernel_Data equ GDT_Kernel_Data - GDT
 Selector_User_Code equ GDT_User_Code - GDT
@@ -217,22 +216,20 @@ Selector_Kernel_Data32 equ GDT_Kernel_Data32 - GDT
 Selector_TSS equ GDT_TSS0 - GDT
 
 global IDT
-[section .idt]
 IDT:
 	resq    512
 IDT_Length equ $ - IDT
 IDT_Pointer:
-	dw IDT_Length - 1
-	dq IDT
+	dw      IDT_Length - 1
+	dq      IDT
 
 global TSS
-[section .tss]
 TSS:
 	resq    13
 TSS_Length equ $ - TSS
 TSS_Pointer:
-	dw TSS_Length - 1
-	dq TSS
+	dw      TSS_Length - 1
+	dq      TSS
 
 MSG_Interrupt:
 	db      "Unknown Interrupt", 0

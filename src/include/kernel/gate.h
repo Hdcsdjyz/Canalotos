@@ -8,7 +8,7 @@
 #ifndef __KERNEL_GATE_H_
 #define __KERNEL_GATE_H_
 
-#include "kernel/types.h"
+#include <kernel/types.h>
 
 struct Gate
 {
@@ -32,5 +32,14 @@ struct Gate
 #define DA_386CGate 0x8C    // call gate
 #define DA_386IGate 0x8E    // interrupt gate
 #define DA_386TGate 0x8F    // trap gate(unused)
+
+#define LOAD_TR(n) do{\
+	__asm__ __volatile(\
+		"	ltr		%%ax"\
+		:\
+		: "a"(n << 3)\
+		: "memory"\
+	);\
+} while (0);
 
 #endif
