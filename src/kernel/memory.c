@@ -1,8 +1,8 @@
 /**
  * @file: kernel/memory.c
  * @author: lhxl
- * @data: 2025-5-1
- * @version: build8
+ * @data: 2025-5-3
+ * @version: build9
  **/
 
 #include <kernel/memory.h>
@@ -101,50 +101,23 @@ void init_memory()
 	memory_desc.pages->count = 0;
 	memory_desc.pages->age = 0;
 	memory_desc.zones_length = memory_desc.zones_size * sizeof(struct Zone) + sizeof(u64) - 1 & ~(sizeof(u64) - 1);
-	__color_printk(
-		ORANGE, BLACK,
-		"bits_map: %lx, bits_map_size: %lx, bits_map_length: %lx\n",
-		memory_desc.bits_map, memory_desc.bits_map_size, memory_desc.bits_map_length
-	);
-	__color_printk(
-		ORANGE, BLACK,
-		"pages: %lx, pages_size: %lx, pages_length: %lx\n",
-		memory_desc.pages, memory_desc.pages_size, memory_desc.pages_length
-	);
-	__color_printk(
-		ORANGE, BLACK,
-		"zones: %lx, zones_size: %lx, zones_length: %lx\n",
-		memory_desc.zones, memory_desc.zones_size, memory_desc.zones_length
-	);
 	ZONE_DMA_INDEX = 0;
 	ZONE_NORMAL_INDEX = 0;
 	for (int i = 0; i < memory_desc.zones_size; i++)
 	{
 		struct Zone* zone = memory_desc.zones + i;
-		__color_printk(
-			ORANGE, BLACK,
-			"zone->start_address: %lx, zone->end_address: %lx, zone->capacity: %lx, zone->pages: %lx, zone->page_size: %lx\n",
-			zone->start_address, zone->end_address, zone->capacity, zone->pages, zone->page_size
-		);
 		if (zone->start_address == 0x100000000)
 		{
 			ZONE_UNMAPPED_INDEX = i;
 		}
 	}
 	memory_desc.end_of_mem_desc = (u64)memory_desc.zones + memory_desc.zones_length + sizeof(u64) * 32 & ~(sizeof(u64) - 1);
-	__color_printk(ORANGE, BLACK,
-		"start_code: %lx, end_code: %lx, end_data: %lx, end_brk: %lx, end_of_struct:%lx\n",
-		memory_desc.kernel_code_start, memory_desc.kernel_code_end, memory_desc.kernel_data_end, memory_desc.kernel_data_end, memory_desc.end_of_mem_desc
-	);
 	int size = vir2phy(memory_desc.end_of_mem_desc) >> PAGE_2M_SHIFT;
 	for (int i = 0; i <= size; i++)
 	{
 		page_init(memory_desc.pages + i, PAGE_TABLE_MAPPED | PAGE_KERNEL_INIT | PAGE_ACTIVE | PAGE_KERNEL);
 	}
 	Global_CR3 = get_gdt();
-	__color_printk(INDIGO,BLACK,"Global_CR3: %lx\n", Global_CR3);
-	__color_printk(INDIGO,BLACK,"*Global_CR3: %lx\n", *phy2vir(Global_CR3) & ~0xFF);
-	__color_printk(INDIGO,BLACK,"**Global_CR3: %lx\n", *phy2vir(*phy2vir(Global_CR3) & ~0xFF) & ~0xFF);
 	for (int i = 0; i < 10; i++)
 	{
 		*(phy2vir(Global_CR3) + i) = 0UL;

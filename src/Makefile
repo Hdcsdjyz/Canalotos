@@ -1,11 +1,22 @@
 # @file: Makefile
 # @author: lhxl
-# @data: 2025-4-12
-# @version: build5
+# @data: 2025-5-3
+# @version: build9
 
 RootDir = $(shell pwd)
 
 MAKE = make
+ASM = nasm
+CC = gcc
+LD = ld
+
+ASMFLAGS = -f elf64 -w-zeroing
+CCFLAGS = -mcmodel=large -fno-builtin -m64 -c -I$(RootDir)/include -fno-stack-protector -std=c23# -Wdiscarded-qualifiers -O0 -s
+LDFLAGS = -b elf64-x86-64 -T kernel.lds -z muldefs -s --no-warn-rwx-segments
+
+export MAKE ASM CC LD
+export ASMFLAGS CCFLAGS LDFLAGS
+
 
 all: mkdir build
 

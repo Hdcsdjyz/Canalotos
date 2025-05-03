@@ -1,14 +1,14 @@
-#	@file: lib/Makefile
+#	@file: kernel/irq/Makefile
 #   @author: lhxl
 #   @data: 2025-5-3
 #	@version: build9
 
-ObjectFile = ../../../Canalotos/obj/kernel/lib/
+ObjectFile = ../../../Canalotos/obj/kernel/irq/
 
 C_INCLUDE = ../../include
 
-obj = $(ObjectFile)string.o\
-	$(ObjectFile)lib.o
+obj = $(ObjectFile)8259A.o\
+	$(ObjectFile)irq.o
 
 .PHONY: all
 
@@ -23,3 +23,6 @@ build: $(obj)
 
 $(ObjectFile)%.o: %.asm
 	$(ASM) $< $(ASMFLAGS) -o $@
+
+$(ObjectFile)%.o: %.c
+	$(CC) $< $(CCFLAGS) -o $@

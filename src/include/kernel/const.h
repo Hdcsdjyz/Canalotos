@@ -1,8 +1,8 @@
 /**
  * @file: include/kernel/const.h
  * @author: lhxl
- * @data: 2025-4-17
- * @version: build7
+ * @data: 2025-5-3
+ * @version: build9
  **/
 
 #ifndef _KERNEL_CONST_H_
@@ -21,5 +21,8 @@
 #define RED		0x00FF0000
 #define ORANGE	0x00FF7777
 #define WHITE	0x00FFFFFF
+
+// irq
+#define NR_IRQ	16
 
 #endif

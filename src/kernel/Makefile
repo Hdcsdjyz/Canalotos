@@ -1,29 +1,25 @@
 # @file: kernel/Makefile
 # @author: lhxl
-# @data: 2025-5-1
-# @version: build8
+# @data: 2025-5-3
+# @version: build9
 
 OutputFile = ../../Canalotos/bin/kernel/
 ObjectFile = ../../Canalotos/obj/kernel/
 ImgFile = ../../Canalotos/img/
 
-MAKE = make
-ASM = nasm
-CC = gcc
-LD = ld
-
-ASMFLAGS = -f elf64 -w-zeroing
-CCFLAGS = -mcmodel=large -fno-builtin -m64 -c -I ../include -fno-stack-protector -std=c23# -Wdiscarded-qualifiers -O0 -s
-LDFLAGS = -b elf64-x86-64 -T kernel.lds -z muldefs #-s --no-warn-rwx-segments
+C_INCLUDE = ../include
 
 obj = $(ObjectFile)head.o\
 	$(ObjectFile)main.o\
 	$(ObjectFile)printk.o\
 	$(ObjectFile)global.o\
-	$(ObjectFile)traps.o\
+	$(ObjectFile)interrupt.o\
 	$(ObjectFile)fault.o\
 	$(ObjectFile)memory.o\
-	$(ObjectFile)lib/*.o
+	$(ObjectFile)lib/lib.o\
+	$(ObjectFile)lib/string.o\
+	$(ObjectFile)irq/irq.o\
+	$(ObjectFile)irq/8259A.o
 
 .PHONY: all
 
@@ -39,6 +35,7 @@ endif
 
 build_sub:
 	cd lib && $(MAKE)
+	cd irq && $(MAKE)
 
 build: $(OutputFile)kernel.bin
 

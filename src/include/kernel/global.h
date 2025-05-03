@@ -1,8 +1,8 @@
 /**
  * @file: include/kernel/global.h
  * @author: lhxl
- * @data: 2025-4-17
- * @version: build7
+ * @data: 2025-5-3
+ * @version: build8
  **/
 
 #ifndef __KERNEL_GLOBAL_H_
@@ -11,6 +11,7 @@
 #include <kernel/screen.h>
 #include <kernel/gate.h>
 #include <kernel/memory.h>
+#include <kernel/types.h>
 
 extern struct Screen screen;
 
@@ -29,5 +30,8 @@ extern u32 ZONE_DMA_INDEX;
 extern u32 ZONE_NORMAL_INDEX;
 extern u32 ZONE_UNMAPPED_INDEX;
 extern u64* Global_CR3;
+
+// irq
+extern irq_handler irq_table[];
 
 #endif

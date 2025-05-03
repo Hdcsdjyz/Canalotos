@@ -1,10 +1,11 @@
 /**
  * @file: kernel/global.c
  * @author: lhxl
- * @data: 2025-5-1
- * @version: build8
+ * @data: 2025-5-3
+ * @version: build9
  **/
 
+#include <kernel/const.h>
 #include <kernel/global.h>
 
 struct Screen screen;
@@ -20,3 +21,6 @@ u32 ZONE_DMA_INDEX = 0;
 u32 ZONE_NORMAL_INDEX = 0;
 u32 ZONE_UNMAPPED_INDEX = 0;
 u64* Global_CR3 = nullptr;
+
+// irq
+irq_handler irq_table[NR_IRQ];

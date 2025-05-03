@@ -1,8 +1,8 @@
 /**
  * @file: kernel/traps.c
  * @author: lhxl
- * @data: 2025-4-17
- * @version: build7
+ * @data: 2025-5-3
+ * @version: build9
  **/
 
 #include <kernel/function.h>
@@ -11,32 +11,47 @@
 #include <kernel/printk.h>
 #include <kernel/const.h>
 #include <kernel/init.h>
-#include <kernel/traps.h>
+#include <kernel/interrupt.h>
 
 PRIVATE void init_IDT_DESC(u8 IDTIndex, u8 gateType, u8 privilege, int_handler handler);
 
 void init_IDT()
 {
-	init_IDT_DESC(0x00, DA_386IGate, DA_DPL0, divide_error);
-	init_IDT_DESC(0x01, DA_386IGate, DA_DPL0, debug);
-	init_IDT_DESC(0x02, DA_386IGate, DA_DPL0, nmi);
-	init_IDT_DESC(0x03, DA_386IGate, DA_DPL3, breakpoint);
-	init_IDT_DESC(0x04, DA_386IGate, DA_DPL3, overflow);
-	init_IDT_DESC(0x05, DA_386IGate, DA_DPL3, bounds);
-	init_IDT_DESC(0x06, DA_386IGate, DA_DPL0, undefined_opcode);
-	init_IDT_DESC(0x07, DA_386IGate, DA_DPL0, device_not_available);
-	init_IDT_DESC(0x08, DA_386IGate, DA_DPL0, double_fault);
-	init_IDT_DESC(0x09, DA_386IGate, DA_DPL0, coprocessor_segment_overrun);
-	init_IDT_DESC(0x0A, DA_386IGate, DA_DPL0, invalid_TSS);
-	init_IDT_DESC(0x0B, DA_386IGate, DA_DPL0, segment_not_present);
-	init_IDT_DESC(0x0C, DA_386IGate, DA_DPL0, stack_segment_fault);
-	init_IDT_DESC(0x0D, DA_386IGate, DA_DPL0, general_protection);
-	init_IDT_DESC(0x0E, DA_386IGate, DA_DPL0, page_fault);
-	init_IDT_DESC(0x10, DA_386IGate, DA_DPL0, x87_FPU_error);
-	init_IDT_DESC(0x11, DA_386IGate, DA_DPL0, alignment_check);
-	init_IDT_DESC(0x12, DA_386IGate, DA_DPL0, machine_check);
-	init_IDT_DESC(0x13, DA_386IGate, DA_DPL0, SIMD_exception);
-	init_IDT_DESC(0x14, DA_386IGate, DA_DPL0, virtualization_exception);
+	init_IDT_DESC(0x00, DA_386IGate, DA_DPL0, __divide_error);
+	init_IDT_DESC(0x01, DA_386IGate, DA_DPL0, __debug);
+	init_IDT_DESC(0x02, DA_386IGate, DA_DPL0, __nmi);
+	init_IDT_DESC(0x03, DA_386IGate, DA_DPL3, __breakpoint);
+	init_IDT_DESC(0x04, DA_386IGate, DA_DPL3, __overflow);
+	init_IDT_DESC(0x05, DA_386IGate, DA_DPL0, __bounds);
+	init_IDT_DESC(0x06, DA_386IGate, DA_DPL0, __undefined_opcode);
+	init_IDT_DESC(0x07, DA_386IGate, DA_DPL0, __device_not_available);
+	init_IDT_DESC(0x08, DA_386IGate, DA_DPL0, __double_fault);
+	init_IDT_DESC(0x09, DA_386IGate, DA_DPL0, __coprocessor_segment_overrun);
+	init_IDT_DESC(0x0A, DA_386IGate, DA_DPL0, __invalid_TSS);
+	init_IDT_DESC(0x0B, DA_386IGate, DA_DPL0, __segment_not_present);
+	init_IDT_DESC(0x0C, DA_386IGate, DA_DPL0, __stack_segment_fault);
+	init_IDT_DESC(0x0D, DA_386IGate, DA_DPL0, __general_protection);
+	init_IDT_DESC(0x0E, DA_386IGate, DA_DPL0, __page_fault);
+	init_IDT_DESC(0x10, DA_386IGate, DA_DPL0, __x87_FPU_error);
+	init_IDT_DESC(0x11, DA_386IGate, DA_DPL0, __alignment_check);
+	init_IDT_DESC(0x12, DA_386IGate, DA_DPL0, __machine_check);
+	init_IDT_DESC(0x13, DA_386IGate, DA_DPL0, __SIMD_exception);
+	init_IDT_DESC(0x14, DA_386IGate, DA_DPL0, __irq00);
+	init_IDT_DESC(0x20, DA_386IGate, DA_DPL0, __irq01);
+	init_IDT_DESC(0x21, DA_386IGate, DA_DPL0, __irq02);
+	init_IDT_DESC(0x22, DA_386IGate, DA_DPL0, __irq03);
+	init_IDT_DESC(0x23, DA_386IGate, DA_DPL0, __irq04);
+	init_IDT_DESC(0x24, DA_386IGate, DA_DPL0, __irq05);
+	init_IDT_DESC(0x25, DA_386IGate, DA_DPL0, __irq06);
+	init_IDT_DESC(0x26, DA_386IGate, DA_DPL0, __irq07);
+	init_IDT_DESC(0x27, DA_386IGate, DA_DPL0, __irq08);
+	init_IDT_DESC(0x28, DA_386IGate, DA_DPL0, __irq09);
+	init_IDT_DESC(0x29, DA_386IGate, DA_DPL0, __irq10);
+	init_IDT_DESC(0x2A, DA_386IGate, DA_DPL0, __irq11);
+	init_IDT_DESC(0x2B, DA_386IGate, DA_DPL0, __irq12);
+	init_IDT_DESC(0x2C, DA_386IGate, DA_DPL0, __irq13);
+	init_IDT_DESC(0x2D, DA_386IGate, DA_DPL0, __irq14);
+	init_IDT_DESC(0x2E, DA_386IGate, DA_DPL0, __irq15);
 }
 
 void do_divide_error(u64 rsp, u64 error_code)
