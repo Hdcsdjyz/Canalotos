@@ -1,10 +1,14 @@
 /**
  * @file: kernel/lib/lib.h
  * @author: lhxl
- * @data: 2025-4-12
- * @version: build5
+ * @data: 2025-5-3
+ * @version: build10
  **/
 
 #include <kernel/types.h>
 
-void port_write_byte(u16 port, u8 data);
+void __port_write_byte(u16 port, u8 data);
+u8 __port_read_byte(u16 port);
+
+void __enable_irq(int irq);
+void __disable_irq(int irq);

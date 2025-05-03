@@ -2,7 +2,7 @@
  * @file: kernel/memory.c
  * @author: lhxl
  * @data: 2025-5-3
- * @version: build9
+ * @version: build10
  **/
 
 #include <kernel/memory.h>
@@ -10,7 +10,6 @@
 #include <kernel/const.h>
 #include <kernel/global.h>
 #include <kernel/lib/string.h>
-#include <kernel/function.h>
 
 PRIVATE u64* get_gdt();
 PRIVATE void flush_tlb();

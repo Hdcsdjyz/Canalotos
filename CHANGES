@@ -1,6 +1,6 @@
-Changes in build9
+Changes in build10
 2025-5-3
 
-1. Init irq(default disable).
+1. Init keyboard.
 
-2. Remove marks.
+2. Move [function.h] to [const.h]

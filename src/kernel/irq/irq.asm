@@ -1,7 +1,7 @@
 ; @file: kernel/irq/irq.asm
 ; @author: lhxl
 ; @data: 2025-5-3
-; @version: build9
+; @version: build10
 
 %macro irq_master 1
 	call    __save
@@ -42,6 +42,10 @@
 	ret
 %endmacro
 
+INT_M_CTLMASK equ 0x21
+INT_S_CTLMASK equ 0xA1
+EOI equ 0x20
+
 extern irq_table
 
 global __irq00
@@ -60,6 +64,9 @@ global __irq12
 global __irq13
 global __irq14
 global __irq15
+
+global __enable_irq
+global __disable_irq
 
 [section .text]
 [bits 64]
@@ -122,3 +129,45 @@ __irq14:  ;
 	irq_slave 14
 __irq15:  ;
 	irq_slave 15
+
+__enable_irq:
+	mov     ecx, edi
+	push    rax
+	cli
+	mov     ah, ~1
+	rol     ah, cl
+	cmp     cl, 8
+	jae     .enable_8
+.enable_0:
+	in      al, INT_M_CTLMASK
+	and     al, ah
+	out     INT_M_CTLMASK, al
+	pop     rax
+	ret
+.enable_8:
+	in      al, INT_S_CTLMASK
+	and     al, ah
+	out     INT_S_CTLMASK, al
+	pop     rax
+	ret
+
+__disable_irq:
+	mov     cx, di
+	push    rax
+	cli
+	mov     ah, 1
+	rol     ah, cl
+	cmp     cl, 8
+	jae     .disable_8
+.disable_0:
+	in      al, INT_M_CTLMASK
+	or      al, ah
+	out     INT_M_CTLMASK, al
+	pop     rax
+	ret
+.disable_8:
+	in      al, INT_S_CTLMASK
+	or      al, ah
+	out     INT_S_CTLMASK, al
+	pop     rax
+	ret

@@ -2,10 +2,9 @@
  * @file: kernel/traps.c
  * @author: lhxl
  * @data: 2025-5-3
- * @version: build9
+ * @version: build10
  **/
 
-#include <kernel/function.h>
 #include <kernel/types.h>
 #include <kernel/global.h>
 #include <kernel/printk.h>

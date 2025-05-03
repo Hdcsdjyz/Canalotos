@@ -2,7 +2,7 @@
  * @file: include/kernel/interrupt.h
  * @author: lhxl
  * @data: 2025-5-3
- * @version: build9
+ * @version: build10
  **/
 
 #ifndef _KERNEL_TRAPS_H_
@@ -49,5 +49,6 @@ void __irq14();
 void __irq15();
 
 void default_irq_handler();
+void __put_irq_handler(int irq, irq_handler handler);
 
 #endif

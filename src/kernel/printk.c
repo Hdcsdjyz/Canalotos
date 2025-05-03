@@ -1,14 +1,13 @@
 /**
  * @file: kernel/printk.c
  * @author: lhxl
- * @data: 2025-4-17
- * @version: build7
+ * @data: 2025-5-3
+ * @version: build10
  **/
 
 
 #include <kernel/types.h>
 #include <kernel/const.h>
-#include <kernel/function.h>
 #include <kernel/global.h>
 #include <kernel/font.h>
 #include <kernel/init.h>
