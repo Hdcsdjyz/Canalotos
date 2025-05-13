@@ -1,12 +1,14 @@
 /**
  * @file: kernel/lib/string.h
  * @author: lhxl
- * @data: 2025-4-12
- * @version: build5
+ * @data: 2025-5-13
+ * @version: build10
  **/
 
 #ifndef __LIB_STRING_H_
 #define __LIB_STRING_H_
+
+#include <kernel/types.h>
 
 size_t strlen(const char* str);
 void* memcpy(void* p_dst, void* p_src, size_t size);

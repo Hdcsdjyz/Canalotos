@@ -1,7 +1,7 @@
 # @file: kernel/Makefile
 # @author: lhxl
-# @data: 2025-5-3
-# @version: build9
+# @data: 2025-5-13
+# @version: build10
 
 OutputFile = ../../Canalotos/bin/kernel/
 ObjectFile = ../../Canalotos/obj/kernel/
@@ -14,13 +14,14 @@ obj = $(ObjectFile)head.o\
 	$(ObjectFile)printk.o\
 	$(ObjectFile)global.o\
 	$(ObjectFile)interrupt.o\
-	$(ObjectFile)fault.o\
+	$(ObjectFile)entry.o\
 	$(ObjectFile)memory.o\
+	$(ObjectFile)tss.o\
 	$(ObjectFile)lib/lib.o\
 	$(ObjectFile)lib/string.o\
 	$(ObjectFile)irq/irq.o\
-	$(ObjectFile)irq/8259A.o
-
+	$(ObjectFile)irq/8259A.o \
+	$(ObjectFile)process/process.o
 .PHONY: all
 
 all: mkdir build_sub build image
@@ -36,6 +37,7 @@ endif
 build_sub:
 	cd lib && $(MAKE)
 	cd irq && $(MAKE)
+	cd process && $(MAKE)
 
 build: $(OutputFile)kernel.bin
 

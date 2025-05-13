@@ -1,14 +1,12 @@
 /**
  * @file: include/kernel/const.h
  * @author: lhxl
- * @data: 2025-5-3
+ * @data: 2025-5-13
  * @version: build10
  **/
 
 #ifndef _KERNEL_CONST_H_
 #define _KERNEL_CONST_H_
-
-#define PRIVATE static
 
 // boolean
 #define TRUE 1
@@ -26,6 +24,14 @@
 
 // irq
 #define NR_IRQ	16
-#define IRQ_KEYBOARD	1
+
+// GDT
+#define SELECTOR_KERNEL_CODE 0x8
+#define SELECTOR_KERNEL_DATA 0x10
+
+// process
+#define PROCESS_STACK_SIZE 16384
+#define NR_PROCESS 1
+#define NR_CPUS 1
 
 #endif

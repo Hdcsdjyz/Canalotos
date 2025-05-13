@@ -1,7 +1,7 @@
 /**
  * @file: include/kernel/interrupt.h
  * @author: lhxl
- * @data: 2025-5-3
+ * @data: 2025-5-13
  * @version: build10
  **/
 
@@ -29,7 +29,7 @@ void __machine_check();
 void __SIMD_exception();
 void __virtualization_exception();
 
-void set_tss(u64 rsp0, u64 rsp1, u64 rsp2, u64 ist1, u64 ist2, u64 ist3, u64 ist4, u64 ist5, u64 ist6, u64 ist7);
+void __goto_ring3();
 
 void __irq00();
 void __irq01();
@@ -49,6 +49,5 @@ void __irq14();
 void __irq15();
 
 void default_irq_handler();
-void __put_irq_handler(int irq, irq_handler handler);
 
 #endif

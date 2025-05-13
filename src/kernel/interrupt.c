@@ -1,10 +1,11 @@
 /**
  * @file: kernel/traps.c
  * @author: lhxl
- * @data: 2025-5-3
+ * @data: 2025-5-13
  * @version: build10
  **/
 
+#include <kernel/function.h>
 #include <kernel/types.h>
 #include <kernel/global.h>
 #include <kernel/printk.h>
@@ -53,77 +54,77 @@ void init_IDT()
 	init_IDT_DESC(0x2E, DA_386IGate, DA_DPL0, __irq15);
 }
 
-void do_divide_error(u64 rsp, u64 error_code)
+void __do_divide_error(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "divide_error, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_debug(u64 rsp, u64 error_code)
+void __do_debug(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "debug, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_nmi(u64 rsp, u64 error_code)
+void __do_nmi(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "nmi, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_breakpoint(u64 rsp, u64 error_code)
+void __do_breakpoint(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "breakpoint, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_overflow(u64 rsp, u64 error_code)
+void __do_overflow(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "overflow, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_bounds(u64 rsp, u64 error_code)
+void __do_bounds(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "bounds, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_undefined_opcode(u64 rsp, u64 error_code)
+void __do_undefined_opcode(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "undefined_opcode, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_device_not_available(u64 rsp, u64 error_code)
+void __do_device_not_available(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "device_not_available, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_double_fault(u64 rsp, u64 error_code)
+void __do_double_fault(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "double_fault, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_coprocessor_segment_overrun(u64 rsp, u64 error_code)
+void __do_coprocessor_segment_overrun(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "coprocessor_segment_overrun, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_invalid_TSS(u64 rsp, u64 error_code)
+void __do_invalid_TSS(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "invalid_tss, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
@@ -154,7 +155,7 @@ void do_invalid_TSS(u64 rsp, u64 error_code)
 	while(1);
 }
 
-void do_segment_not_present(u64 rsp, u64 error_code)
+void __do_segment_not_present(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "segment_not_present,ERROR_CODE:%12lx,RSP:%12lx,RIP:%12lx\n", error_code, rsp, *p);
@@ -186,7 +187,7 @@ void do_segment_not_present(u64 rsp, u64 error_code)
 	while(1);
 }
 
-void do_stack_segment_fault(u64 rsp, u64 error_code)
+void __do_stack_segment_fault(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "stack_segment_fault,ERROR_CODE:%12lx,RSP:%12lx,RIP:%12lx\n", error_code, rsp, *p);
@@ -219,7 +220,7 @@ void do_stack_segment_fault(u64 rsp, u64 error_code)
 	while(1);
 }
 
-void do_general_protection(u64 rsp,u64 error_code)
+void __do_general_protection(u64 rsp,u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "general_protection, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
@@ -250,7 +251,7 @@ void do_general_protection(u64 rsp,u64 error_code)
 	while(1);
 }
 
-void do_page_fault(u64 rsp, u64 error_code)
+void __do_page_fault(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	u64 cr2 = 0;
@@ -294,60 +295,46 @@ void do_page_fault(u64 rsp, u64 error_code)
 	while(1);
 }
 
-void do_coprocessor_error(u64 rsp, u64 error_code)
+void __do_coprocessor_error(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "coprocessor_error, ERROR_CODE:%12lx, RSP:%x, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_x87_FPU_error(u64 rsp, u64 error_code)
+void __do_x87_FPU_error(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "x87_FPU_error, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_alignment_check(u64 rsp, u64 error_code)
+void __do_alignment_check(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "alignment_check, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_machine_check(u64 rsp, u64 error_code)
+void __do_machine_check(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "machine_check, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_SIMD_exception(u64 rsp, u64 error_code)
+void __do_SIMD_exception(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "SIMD_exception, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
 }
 
-void do_virtualization_exception(u64 rsp, u64 error_code)
+void __do_virtualization_exception(u64 rsp, u64 error_code)
 {
 	u64* p = (u64*)(rsp + 0x98);
 	__color_printk(RED, BLACK, "virtualization_exception, ERROR_CODE:%12lx, RSP:%12lx, RIP:%12lx\n", error_code, rsp, *p);
 	while(1);
-}
-
-void set_tss(u64 rsp0, u64 rsp1, u64 rsp2, u64 ist1, u64 ist2, u64 ist3, u64 ist4, u64 ist5, u64 ist6, u64 ist7)
-{
-	*(u64*)(TSS + 1) = rsp0;
-	*(u64*)(TSS + 3) = rsp1;
-	*(u64*)(TSS + 5) = rsp2;
-	*(u64*)(TSS + 9) = ist1;
-	*(u64*)(TSS + 11) = ist2;
-	*(u64*)(TSS + 13) = ist3;
-	*(u64*)(TSS + 15) = ist4;
-	*(u64*)(TSS + 17) = ist5;
-	*(u64*)(TSS + 19) = ist6;
-	*(u64*)(TSS + 21) = ist7;
 }
 
 PRIVATE void init_IDT_DESC(u8 IDTIndex, u8 gateType, u8 privilege, int_handler handler)
@@ -355,7 +342,7 @@ PRIVATE void init_IDT_DESC(u8 IDTIndex, u8 gateType, u8 privilege, int_handler h
 	struct Gate* p_gate = &IDT[IDTIndex];
 	u64 base = (u64)handler;
 	p_gate->offsetLow = base & 0xFFFF;
-	p_gate->selector = 0x8;
+	p_gate->selector = SELECTOR_KERNEL_CODE;
 	p_gate->paramCount = 0;
 	p_gate->attribute = gateType | privilege;
 	p_gate->offsetMid = base >> 16 & 0xFFFF;

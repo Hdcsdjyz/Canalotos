@@ -1,6 +1,6 @@
 Changes in build10
-2025-5-3
+2025-5-13
 
-1. Init keyboard.
+1. 建立进程结构并完善第一个进程结构
 
-2. Move [function.h] to [const.h]
+2. 实现memcpy和strlen

@@ -1,8 +1,8 @@
 /**
  * @file: kernel/kernel.lds
  * @author: lhxl
- * @data: 2025-4-14
- * @version: build6
+ * @data: 2025-5-13
+ * @version: build10
  **/
 
 OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
@@ -23,6 +23,17 @@ SECTIONS
 		_data = .;
 		*(.data)
 		_edata = .;
+	}
+	.rodata :
+	{
+		_rodata = .;
+		*(.rodata)
+		_erodata = .;
+	}
+	. = ALIGN(16384);
+	.data.__init :
+	{
+		*(.data.__init)
 	}
 	.bss :
 	{

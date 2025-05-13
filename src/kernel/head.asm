@@ -1,7 +1,7 @@
 ; @file: kernel/head.asm
 ; @author: lhxl
-; @data: 2025-5-1
-; @version: build8
+; @data: 2025-5-13
+; @version: build10
 
 %include "macro.inc"
 
@@ -183,26 +183,28 @@ __PDE:
 
 [section .data]
 global GDT
-GDT:
+GDT:                ; 0
 	Descriptor 0
-GDT_Kernel_Code:
+GDT_Kernel_Code:    ; 1
 	Descriptor DA_64 | DA_C
-GDT_Kernel_Data:
+GDT_Kernel_Data:    ; 2
 	Descriptor DA_DRW
-GDT_User_Code:
+GDT_User_Code:      ; 3
 	Descriptor DA_64 | DA_C | DA_DPL3
-GDT_User_Data:
+GDT_User_Data:      ; 4
 	Descriptor DA_DRW | DA_DPL3
-GDT_Kernel_Code32:
+GDT_Kernel_Code32:  ; 5
 	Descriptor32 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_CR
-GDT_Kernel_Data32:
+GDT_Kernel_Data32:  ; 6
 	Descriptor32 0x00000000, 0xFFFFF, DA_32 | DA_LIMIT_4K | DA_DRW
-GDT_NULL:
-	Descriptor 0
-GDT_TSS0:
+GDT_TSS0:           ; 7
 	dq      0
 GDT_TSS1:
 	dq      0
+GDT_NULL:
+	Descriptor 0
+	Descriptor 0
+
 GDT_Length equ $ - GDT
 GDT_Pointer:
 	dw      GDT_Length - 1

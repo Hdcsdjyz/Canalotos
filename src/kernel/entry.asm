@@ -1,7 +1,7 @@
-; @file: kernel/fault.asm
+; @file: kernel/entry.asm
 ; @author: lhxl
-; @data: 2025-5-3
-; @version: build9
+; @data: 2025-5-13
+; @version: build10
 
 %macro GET_CURRENT 1
 	mov     %1, -32768
@@ -54,26 +54,28 @@ global __machine_check
 global __SIMD_exception
 global __virtualization_exception
 
-extern do_divide_error
-extern do_debug
-extern do_nmi
-extern do_breakpoint
-extern do_overflow
-extern do_bounds
-extern do_undefined_opcode
-extern do_device_not_available
-extern do_double_fault
-extern do_coprocessor_segment_overrun
-extern do_invalid_TSS
-extern do_segment_not_present
-extern do_stack_segment_fault
-extern do_general_protection
-extern do_page_fault
-extern do_x87_FPU_error
-extern do_alignment_check
-extern do_machine_check
-extern do_SIMD_exception
-extern do_virtualization_exception
+global __goto_ring3
+
+extern __do_divide_error
+extern __do_debug
+extern __do_nmi
+extern __do_breakpoint
+extern __do_overflow
+extern __do_bounds
+extern __do_undefined_opcode
+extern __do_device_not_available
+extern __do_double_fault
+extern __do_coprocessor_segment_overrun
+extern __do_invalid_TSS
+extern __do_segment_not_present
+extern __do_stack_segment_fault
+extern __do_general_protection
+extern __do_page_fault
+extern __do_x87_FPU_error
+extern __do_alignment_check
+extern __do_machine_check
+extern __do_SIMD_exception
+extern __do_virtualization_exception
 
 RestoreRegister:
 	pop     r15
@@ -132,17 +134,18 @@ error_code:
 	mov     rdi, rsp
 	call    rdx
 	jmp     ret_from_exception
+
 __divide_error:
 	push    0
 	push    rax
-	lea     rax, [rel do_divide_error]
+	lea     rax, [rel __do_divide_error]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __debug:
 	push    0
 	push    rax
-	lea     rax, [rel do_debug]
+	lea     rax, [rel __do_debug]
 	xchg    [rsp], rax
 	jmp     error_code
 
@@ -175,118 +178,145 @@ __nmi:
 	mov     es, rdx
 	mov     rsi, 0
 	mov     rdi, rsp
-	call    do_nmi
+	call    __do_nmi
 	jmp     RestoreRegister
 
 __breakpoint:
 	push    0
 	push    rax
-	lea     rax, [rel do_breakpoint]
+	lea     rax, [rel __do_breakpoint]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __overflow:
 	push    0
 	push    rax
-	lea     rax, [rel do_overflow]
+	lea     rax, [rel __do_overflow]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __bounds:
 	push    0
 	push    rax
-	lea     rax, [rel do_bounds]
+	lea     rax, [rel __do_bounds]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __undefined_opcode:
 	push    0
 	push    rax
-	lea     rax, [rel do_undefined_opcode]
+	lea     rax, [rel __do_undefined_opcode]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __device_not_available:
 	push    0
 	push    rax
-	lea     rax, [rel do_device_not_available]
+	lea     rax, [rel __do_device_not_available]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __double_fault:
 	push    0
 	push    rax
-	lea     rax, [rel do_double_fault]
+	lea     rax, [rel __do_double_fault]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __coprocessor_segment_overrun:
 	push    0
 	push    rax
-	lea     rax, [rel do_coprocessor_segment_overrun]
+	lea     rax, [rel __do_coprocessor_segment_overrun]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __invalid_TSS:
 	push    rax
-	lea     rax, [rel do_invalid_TSS]
+	lea     rax, [rel __do_invalid_TSS]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __segment_not_present:
 	push    rax
-	lea     rax, [rel do_segment_not_present]
+	lea     rax, [rel __do_segment_not_present]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __stack_segment_fault:
 	push    rax
-	lea     rax, [rel do_stack_segment_fault]
+	lea     rax, [rel __do_stack_segment_fault]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __general_protection:
 	push    rax
-	lea     rax, [rel do_general_protection]
+	lea     rax, [rel __do_general_protection]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __page_fault:
 	push    rax
-	lea     rax, [rel do_page_fault]
+	lea     rax, [rel __do_page_fault]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __x87_FPU_error:
 	push    0
 	push    rax
-	lea     rax, [rel do_x87_FPU_error]
+	lea     rax, [rel __do_x87_FPU_error]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __alignment_check:
 	push    rax
-	lea     rax, [rel do_alignment_check]
+	lea     rax, [rel __do_alignment_check]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __machine_check:
 	push    0
 	push    rax
-	lea     rax, [rel do_machine_check]
+	lea     rax, [rel __do_machine_check]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __SIMD_exception:
 	push    0
 	push    rax
-	lea     rax, [rel do_SIMD_exception]
+	lea     rax, [rel __do_SIMD_exception]
 	xchg    [rsp], rax
 	jmp     error_code
 
 __virtualization_exception:
 	push    0
 	push    rax
-	lea     rax, [rel do_virtualization_exception]
+	lea     rax, [rel __do_virtualization_exception]
 	xchg    [rsp], rax
 	jmp     error_code
+
+; void __enter_ring3();
+;
+__goto_ring3:
+	mov     [rsp + 0x80], rax
+	pop     r15
+	pop     r14
+	pop     r13
+	pop     r12
+	pop     r11
+	pop     r10
+	pop     r9
+	pop     r8
+	pop     rbx
+	pop     rcx
+	pop     rdx
+	pop     rsi
+	pop     rdi
+	pop     rbp
+	pop     rax
+	mov     ds, rax
+	pop     rax
+	mov     es, rax
+	pop     rax
+	add     rsp, 0x38
+	db      0x48
+	sysexit
